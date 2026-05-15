@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="SistemaTransporteInterurbano.BL/SistemaTransporteInterurbano.BL.csproj" />
+  <Project Path="SistemaTransporteInterurbano.DA/SistemaTransporteInterurbano.DA.csproj" />
+  <Project Path="SistemaTransporteInterurbano.Models/SistemaTransporteInterurbano.Models.csproj" />
+  <Project Path="SistemaTransporteInterurbano.UI/SistemaTransporteInterurbano.UI.csproj" />
+</Solution>
