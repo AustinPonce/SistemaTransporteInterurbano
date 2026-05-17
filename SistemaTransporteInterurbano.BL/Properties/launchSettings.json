@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SistemaTransporteInterurbano.BL": {
+      "commandName": "Project",
+      "debugEngines": "managed"
+    }
+  }
+}

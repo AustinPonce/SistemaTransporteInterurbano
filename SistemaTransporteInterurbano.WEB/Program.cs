@@ -22,6 +22,10 @@ builder.Services.AddScoped<
     INotificacionCorreoService,
     NotificacionCorreoService>();
 
+builder.Services.AddScoped<
+    IUsuarioService,
+    UsuarioService>();
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -33,16 +37,16 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
+
 app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapStaticAssets();
-
 app.MapControllerRoute(
     name: "default",
     pattern:
-        "{controller=Autenticacion}/{action=IniciarSesion}/{id?}")
-    .WithStaticAssets();
+        "{controller=Autenticacion}/{action=IniciarSesion}/{id?}");
 
 app.Run();
+

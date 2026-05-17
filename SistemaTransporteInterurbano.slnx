@@ -2,5 +2,5 @@
   <Project Path="SistemaTransporteInterurbano.BL/SistemaTransporteInterurbano.BL.csproj" />
   <Project Path="SistemaTransporteInterurbano.DA/SistemaTransporteInterurbano.DA.csproj" />
   <Project Path="SistemaTransporteInterurbano.Models/SistemaTransporteInterurbano.Models.csproj" />
-  <Project Path="SistemaTransporteInterurbano.UI/SistemaTransporteInterurbano.UI.csproj" />
+  <Project Path="SistemaTransporteInterurbano.WEB/SistemaTransporteInterurbano.WEB.csproj" Id="b557b4f2-2da8-495f-b25b-4ec55e0418e2" />
 </Solution>

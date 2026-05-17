@@ -1,0 +1,66 @@
+﻿@model SistemaTransporteInterurbano.UI.Models.ViewModels.CambiarClaveViewModel
+
+@{
+    ViewData["Title"] = "Cambiar Clave";
+}
+
+<h2 class="mb-4">Cambiar Clave</h2>
+
+@if (ViewBag.MensajeError != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.MensajeError
+    </div>
+}
+
+<form asp-action="CambiarClave" method="post">
+
+    <div class="mb-3">
+        <label asp-for="NombreUsuario"
+               class="form-label">
+        </label>
+
+        <input asp-for="NombreUsuario"
+               class="form-control" />
+
+        <span asp-validation-for="NombreUsuario"
+              class="text-danger">
+        </span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ClaveActual"
+               class="form-label">
+        </label>
+
+        <input asp-for="ClaveActual"
+               class="form-control" />
+
+        <span asp-validation-for="ClaveActual"
+              class="text-danger">
+        </span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NuevaClave"
+               class="form-label">
+        </label>
+
+        <input asp-for="NuevaClave"
+               class="form-control" />
+
+        <span asp-validation-for="NuevaClave"
+              class="text-danger">
+        </span>
+    </div>
+
+    <button type="submit"
+            class="btn btn-success">
+        Cambiar Clave
+    </button>
+
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

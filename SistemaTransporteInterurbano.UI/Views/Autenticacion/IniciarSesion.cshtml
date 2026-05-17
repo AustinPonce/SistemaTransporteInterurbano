@@ -1,0 +1,53 @@
+﻿@model SistemaTransporteInterurbano.UI.Models.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+}
+
+<h2 class="mb-4">Iniciar Sesión</h2>
+
+@if (ViewBag.MensajeError != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.MensajeError
+    </div>
+}
+
+<form asp-action="IniciarSesion" method="post">
+
+    <div class="mb-3">
+        <label asp-for="NombreUsuario"
+               class="form-label">
+        </label>
+
+        <input asp-for="NombreUsuario"
+               class="form-control" />
+
+        <span asp-validation-for="NombreUsuario"
+              class="text-danger">
+        </span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Clave"
+               class="form-label">
+        </label>
+
+        <input asp-for="Clave"
+               class="form-control" />
+
+        <span asp-validation-for="Clave"
+              class="text-danger">
+        </span>
+    </div>
+
+    <button type="submit"
+            class="btn btn-primary">
+        Iniciar Sesión
+    </button>
+
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
