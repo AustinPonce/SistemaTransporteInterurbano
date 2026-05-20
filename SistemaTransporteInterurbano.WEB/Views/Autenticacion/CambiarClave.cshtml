@@ -2,73 +2,195 @@
 
 @{
     ViewData["Title"] = "Cambiar Clave";
+    // Eliminamos la barra blanca superior para que sea una pantalla limpia
+    Layout = null;
 }
 
-<h2 class="mb-4">Cambiar Clave</h2>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Sistema de Transporte Interurbano</title>
 
-@if (ViewBag.MensajeError != null)
-{
-    <div class="alert alert-danger">
-        @ViewBag.MensajeError
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+            body {
+                background: linear-gradient(rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 0.7)), url('/images/FondodeTransporte.png') no-repeat center center fixed;
+                background-size: cover;
+                min-height: 100vh;
+                margin: 0;
+                padding: 0;
+            }
+
+            /* Efecto Glassmorphism */
+            .glass-card {
+                background: rgba(255, 255, 255, 0.12);
+                backdrop-filter: blur(16px) saturate(120%);
+                -webkit-backdrop-filter: blur(16px) saturate(120%);
+                border: 1px solid rgba(255, 255, 255, 0.25);
+                border-radius: 24px;
+                color: #ffffff;
+            }
+
+            /* Inputs transparentes redondeados */
+            .glass-input-group {
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 50px !important;
+                overflow: hidden;
+                transition: all 0.3s ease;
+            }
+
+                .glass-input-group:focus-within {
+                    border-color: #0dcaf0;
+                    box-shadow: 0 0 12px rgba(13, 202, 240, 0.4);
+                    background: rgba(255, 255, 255, 0.15);
+                }
+
+                .glass-input-group .input-group-text {
+                    background: transparent;
+                    border: none;
+                    color: rgba(255, 255, 255, 0.7);
+                    padding-left: 20px;
+                }
+
+                .glass-input-group .form-control {
+                    background: transparent;
+                    border: none;
+                    color: #ffffff;
+                    padding: 12px 20px 12px 10px;
+                }
+
+                    .glass-input-group .form-control:focus {
+                        background: transparent;
+                        box-shadow: none;
+                        color: #ffffff;
+                    }
+
+                    .glass-input-group .form-control::placeholder {
+                        color: rgba(255, 255, 255, 0.5);
+                    }
+
+            /* Botón de Guardar / Cambiar Clave */
+            .btn-gradient-action {
+                background: linear-gradient(135deg, #198754, #20c997);
+                border: none;
+                color: white;
+                font-weight: 600;
+                border-radius: 50px;
+                padding: 12px;
+                transition: all 0.3s ease;
+            }
+
+                .btn-gradient-action:hover {
+                    background: linear-gradient(135deg, #146c43, #15a37a);
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 15px rgba(32, 201, 151, 0.4);
+                    color: white;
+                }
+
+            /* Enlace para regresar */
+            .glass-link {
+                color: rgba(255, 255, 255, 0.65);
+                font-size: 0.85rem;
+                text-decoration: none;
+                transition: color 0.2s ease;
+            }
+
+                .glass-link:hover {
+                    color: #ffffff;
+                    text-decoration: underline;
+                }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100 py-5">
+            <div class="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+
+                @if (ViewBag.MensajeError != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show border-0 shadow bg-danger text-white mb-4 rounded-4" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> @ViewBag.MensajeError
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @if (TempData["MensajeExito"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show border-0 shadow bg-success text-white mb-4 rounded-4" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i> @TempData["MensajeExito"]
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <div class="card glass-card shadow-lg p-3 p-sm-4">
+                    <div class="card-body">
+
+                        <div class="text-center mb-4">
+                            <div class="bg-success bg-opacity-25 d-inline-flex align-items-center justify-content-center rounded-circle border border-success border-opacity-50 mb-3" style="width: 65px; height: 65px;">
+                                <i class="bi bi-shield-shield text-success fs-2"></i>
+                            </div>
+                            <h2 class="fw-bold tracking-tight mb-1" style="font-family: 'Segoe UI', system-ui, sans-serif;">Cambiar Clave</h2>
+                            <p class="text-white-50 small">Actualiza tus credenciales de acceso</p>
+                        </div>
+
+                        <form asp-action="CambiarClave" method="post" autocomplete="off">
+
+                            <div class="mb-3">
+                                <label asp-for="NombreUsuario" class="form-label small fw-semibold text-white-50 ms-2 mb-1"></label>
+                                <div class="input-group glass-input-group">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input asp-for="NombreUsuario" class="form-control" placeholder="Confirma tu usuario" />
+                                </div>
+                                <span asp-validation-for="NombreUsuario" class="text-info small ms-2 d-block mt-1"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="ClaveActual" class="form-label small fw-semibold text-white-50 ms-2 mb-1"></label>
+                                <div class="input-group glass-input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    <input asp-for="ClaveActual" type="password" class="form-control" placeholder="Tu contraseña actual" />
+                                </div>
+                                <span asp-validation-for="ClaveActual" class="text-info small ms-2 d-block mt-1"></span>
+                            </div>
+
+                            <div class="mb-4">
+                                <label asp-for="NuevaClave" class="form-label small fw-semibold text-white-50 ms-2 mb-1"></label>
+                                <div class="input-group glass-input-group">
+                                    <span class="input-group-text"><i class="bi bi-key"></i></span>
+                                    <input asp-for="NuevaClave" type="password" class="form-control" placeholder="Nueva contraseña segura" />
+                                </div>
+                                <span asp-validation-for="NuevaClave" class="text-info small ms-2 d-block mt-1"></span>
+                            </div>
+
+                            <div class="d-grid gap-3 text-center">
+                                <button type="submit" class="btn btn-gradient-action btn-lg fs-6 shadow-sm mb-2">
+                                    <i class="bi bi-check2-circle me-2"></i>Actualizar Contraseña
+                                </button>
+
+                                <a asp-action="IniciarSesion" class="glass-link">
+                                    <i class="bi bi-arrow-left me-1"></i> Volver al Inicio de Sesión
+                                </a>
+                            </div>
+
+                        </form>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
-}
-@if (TempData["MensajeExito"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["MensajeExito"]
-    </div>
-}
 
-<form asp-action="CambiarClave" method="post">
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 
-    <div class="mb-3">
-        <label asp-for="NombreUsuario"
-               class="form-label">
-        </label>
-
-        <input asp-for="NombreUsuario"
-               class="form-control" />
-
-        <span asp-validation-for="NombreUsuario"
-              class="text-danger">
-        </span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="ClaveActual"
-               class="form-label">
-        </label>
-
-        <input asp-for="ClaveActual"
-               type="password"
-               class="form-control" />
-
-        <span asp-validation-for="ClaveActual"
-              class="text-danger">
-        </span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="NuevaClave"
-               class="form-label">
-        </label>
-
-        <input asp-for="NuevaClave"
-               type="password"
-               class="form-control" />
-
-        <span asp-validation-for="NuevaClave"
-              class="text-danger">
-        </span>
-    </div>
-
-    <button type="submit"
-            class="btn btn-success">
-        Cambiar Clave
-    </button>
-
-</form>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+</body>
+</html>

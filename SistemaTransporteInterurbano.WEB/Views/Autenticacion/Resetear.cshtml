@@ -1,8 +1,8 @@
-﻿@model SistemaTransporteInterurbano.WEB.Models.ViewModels.LoginViewModel
+@model SistemaTransporteInterurbano.WEB.Models.ViewModels.ResetPasswordViewModel
 
 @{
-    ViewData["Title"] = "Iniciar Sesión";
-    // Esto elimina la barra blanca de arriba (evita usar el Layout general para esta vista)
+    ViewData["Title"] = "Restablecer contraseña";
+    // Desvinculamos el Layout para mantener la pantalla completa limpia
     Layout = null;
 }
 
@@ -35,7 +35,7 @@
                 color: #ffffff;
             }
 
-            /* Inputs transparentes */
+            /* Inputs transparentes redondeados */
             .glass-input-group {
                 background: rgba(255, 255, 255, 0.08);
                 border: 1px solid rgba(255, 255, 255, 0.2);
@@ -74,8 +74,8 @@
                         color: rgba(255, 255, 255, 0.5);
                     }
 
-            /* Botón de ingreso */
-            .btn-gradient-login {
+            /* Botón de Restablecer (Degradado Azul Eléctrico Intenso) */
+            .btn-gradient-reset {
                 background: linear-gradient(135deg, #0d6efd, #0dcaf0);
                 border: none;
                 color: white;
@@ -85,14 +85,14 @@
                 transition: all 0.3s ease;
             }
 
-                .btn-gradient-login:hover {
+                .btn-gradient-reset:hover {
                     background: linear-gradient(135deg, #0b5ed7, #31d2f2);
                     transform: translateY(-2px);
                     box-shadow: 0 6px 15px rgba(13, 202, 240, 0.4);
                     color: white;
                 }
 
-            /* Enlaces inferiores estilizados */
+            /* Enlace para regresar */
             .glass-link {
                 color: rgba(255, 255, 255, 0.65);
                 font-size: 0.85rem;
@@ -110,7 +110,7 @@
 
     <div class="container">
         <div class="row justify-content-center align-items-center min-vh-100 py-5">
-            <div class="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
 
                 @if (ViewBag.MensajeError != null)
                 {
@@ -132,46 +132,60 @@
                     <div class="card-body">
 
                         <div class="text-center mb-4">
-                            <div class="bg-info bg-opacity-25 d-inline-flex align-items-center justify-content-center rounded-circle border border-info border-opacity-50 mb-3" style="width: 65px; height: 65px;">
-                                <i class="bi bi-bus-front text-info fs-2"></i>
+                            <div class="bg-primary bg-opacity-25 d-inline-flex align-items-center justify-content-center rounded-circle border border-primary border-opacity-50 mb-3" style="width: 65px; height: 65px;">
+                                <i class="bi bi-shield-lock text-primary-light fs-2" style="color: #6ea8fe;"></i>
                             </div>
-                            <h2 class="fw-bold tracking-tight mb-1" style="font-family: 'Segoe UI', system-ui, sans-serif;">Iniciar Sesión</h2>
-                            <p class="text-white-50 small">Sistema de Transporte Interurbano</p>
+                            <h2 class="fw-bold tracking-tight mb-1" style="font-family: 'Segoe UI', system-ui, sans-serif;">Nueva Contraseña</h2>
+                            <p class="text-white-50 small">Ingresa el código enviado y define tus nuevas credenciales.</p>
                         </div>
 
-                        <form asp-action="IniciarSesion" method="post" autocomplete="off">
+                        <form asp-action="Resetear" method="post" autocomplete="off">
+                            @Html.AntiForgeryToken()
 
                             <div class="mb-3">
-                                <label asp-for="NombreUsuario" class="form-label small fw-semibold text-white-50 ms-2 mb-1"></label>
+                                <label asp-for="Correo" class="form-label small fw-semibold text-white-50 ms-2 mb-1">Correo Electrónico</label>
                                 <div class="input-group glass-input-group">
-                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                    <input asp-for="NombreUsuario" class="form-control" placeholder="Introduce tu usuario" />
+                                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                    <input asp-for="Correo" type="email" class="form-control" placeholder="ejemplo@transporte.com" />
                                 </div>
-                                <span asp-validation-for="NombreUsuario" class="text-info small ms-2 d-block mt-1"></span>
+                                <span asp-validation-for="Correo" class="text-info small ms-2 d-block mt-1"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Codigo" class="form-label small fw-semibold text-white-50 ms-2 mb-1">Código de Verificación</label>
+                                <div class="input-group glass-input-group">
+                                    <span class="input-group-text"><i class="bi bi-hash"></i></span>
+                                    <input asp-for="Codigo" class="form-control" placeholder="Introduce el código recibido" />
+                                </div>
+                                <span asp-validation-for="Codigo" class="text-info small ms-2 d-block mt-1"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="NuevaClave" class="form-label small fw-semibold text-white-50 ms-2 mb-1">Nueva Contraseña</label>
+                                <div class="input-group glass-input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    <input asp-for="NuevaClave" type="password" class="form-control" placeholder="Mínimo 6 caracteres" />
+                                </div>
+                                <span asp-validation-for="NuevaClave" class="text-info small ms-2 d-block mt-1"></span>
                             </div>
 
                             <div class="mb-4">
-                                <label asp-for="Clave" class="form-label small fw-semibold text-white-50 ms-2 mb-1"></label>
+                                <label asp-for="ConfirmarClave" class="form-label small fw-semibold text-white-50 ms-2 mb-1">Confirmar Contraseña</label>
                                 <div class="input-group glass-input-group">
-                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                    <input asp-for="Clave" type="password" class="form-control" placeholder="Introduce tu contraseña" />
+                                    <span class="input-group-text"><i class="bi bi-lock-check"></i></span>
+                                    <input asp-for="ConfirmarClave" type="password" class="form-control" placeholder="Repite la contraseña" />
                                 </div>
-                                <span asp-validation-for="Clave" class="text-info small ms-2 d-block mt-1"></span>
+                                <span asp-validation-for="ConfirmarClave" class="text-info small ms-2 d-block mt-1"></span>
                             </div>
 
                             <div class="d-grid gap-3 text-center">
-                                <button type="submit" class="btn btn-gradient-login btn-lg fs-6 shadow-sm mb-2">
-                                    <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+                                <button type="submit" class="btn btn-gradient-reset btn-lg fs-6 shadow-sm mb-2">
+                                    <i class="bi bi-check2-all me-2"></i>Restablecer Contraseña
                                 </button>
 
-                                <div class="d-flex justify-content-between px-2">
-                                    <a asp-controller="Autenticacion" asp-action="CambiarClave" class="glass-link">
-                                        <i class="bi bi-key-fill me-1"></i>Cambiar Clave
-                                    </a>
-                                    <a asp-controller="Autenticacion" asp-action="Recuperar" class="glass-link">
-                                        <i class="bi bi-question-circle-fill me-1"></i>Recuperar Clave
-                                    </a>
-                                </div>
+                                <a asp-action="IniciarSesion" class="glass-link">
+                                    <i class="bi bi-arrow-left me-1"></i> Volver al Inicio de Sesión
+                                </a>
                             </div>
 
                         </form>

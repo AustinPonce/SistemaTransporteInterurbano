@@ -12,4 +12,8 @@ public interface IAutenticacionService
         string nombreUsuario,
         string claveActual,
         string nuevaClave);
+
+    Task IniciarRecuperacionPorCorreoAsync(string correo);
+
+    Task ResetearClaveConCodigoAsync(string correo, string codigo, string nuevaClave);
 }

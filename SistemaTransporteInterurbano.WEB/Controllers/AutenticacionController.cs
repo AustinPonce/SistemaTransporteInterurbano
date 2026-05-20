@@ -9,11 +9,12 @@ public class AutenticacionController : Controller
     private readonly IAutenticacionService
         _autenticacionService;
 
-    public AutenticacionController(
-        IAutenticacionService autenticacionService)
+    private readonly INotificacionCorreoService _notificacionCorreoService;
+
+    public AutenticacionController(IAutenticacionService autenticacionService, INotificacionCorreoService notificacionCorreoService)
     {
-        _autenticacionService =
-            autenticacionService;
+        _autenticacionService = autenticacionService;
+        _notificacionCorreoService = notificacionCorreoService;
     }
 
     [HttpGet]
@@ -100,6 +101,60 @@ public class AutenticacionController : Controller
             ViewBag.MensajeError = ex.Message;
 
             return View(viewModel);
+        }
+    }
+
+    [HttpGet]
+    public IActionResult Recuperar()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Recuperar(ForgotPasswordViewModel vm)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            await _autenticacionService.IniciarRecuperacionPorCorreoAsync(vm.Correo);
+
+            TempData["MensajeExito"] = "Se envió un código a su correo.";
+
+            return RedirectToAction("Resetear");
+        }
+        catch (Exception ex)
+        {
+            ViewBag.MensajeError = ex.Message;
+            return View(vm);
+        }
+    }
+
+    [HttpGet]
+    public IActionResult Resetear()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Resetear(ResetPasswordViewModel vm)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            await _autenticacionService.ResetearClaveConCodigoAsync(vm.Correo, vm.Codigo, vm.NuevaClave);
+
+            TempData["MensajeExito"] = "La contraseña fue restablecida.";
+
+            return RedirectToAction("IniciarSesion");
+        }
+        catch (Exception ex)
+        {
+            ViewBag.MensajeError = ex.Message;
+            return View(vm);
         }
     }
 }

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SistemaTransporteInterurbano.BL.Interfaces;
 using SistemaTransporteInterurbano.BL.Services;
 using SistemaTransporteInterurbano.DA.Context;
@@ -18,7 +19,7 @@ builder.Services.AddScoped<
     IAutenticacionService,
     AutenticacionService>();
 
-builder.Services.AddScoped<
+builder.Services.TryAddScoped<
     INotificacionCorreoService,
     NotificacionCorreoService>();
 
@@ -27,6 +28,19 @@ builder.Services.AddScoped<
     UsuarioService>();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        SistemaTransporteInterurbano.DA.Context.DbInitializer.InitializeAsync(context).Wait();
+    }
+    catch
+    {
+    }
+}
 
 if (!app.Environment.IsDevelopment())
 {
@@ -42,6 +56,10 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "autenticacion",
+    pattern: "Autenticacion/{action=IniciarSesion}/{id?}");
 
 app.MapControllerRoute(
     name: "default",
