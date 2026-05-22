@@ -12,10 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\" />
     <Folder Include="Interfaces\" />
-    <Folder Include="Pages\Buses\" />
-    <Folder Include="Repositories\" />
   </ItemGroup>
 <ItemGroup>
   <Compile Remove="bin\**" />
