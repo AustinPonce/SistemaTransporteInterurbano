@@ -4,7 +4,7 @@ namespace SistemaTransporteInterurbano.BL.Interfaces;
 
 public interface IAutenticacionService
 {
-    Task<Usuario?> AutenticarUsuarioPorNombreYClave(
+    Task <Usuario?> AutenticarUsuarioPorNombreYClave(
         string nombreUsuario,
         string clave);
 

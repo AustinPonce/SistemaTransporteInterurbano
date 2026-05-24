@@ -16,6 +16,14 @@ public class AppDbContext : DbContext
 
     public DbSet<PasswordReset> PasswordResets { get; set; }
 
+    public DbSet<Chofer> Choferes { get; set; }
+
+    public DbSet<Pasajero> Pasajeros { get; set; }
+
+    public DbSet<Ruta> Rutas { get; set; }
+
+    public DbSet<Unidad> Unidades { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

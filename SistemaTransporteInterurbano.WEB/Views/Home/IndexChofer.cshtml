@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Inicio";
+    ViewData["Title"] = "Inicio Chofer";
     Layout = null;
 }
 
@@ -27,20 +27,20 @@
     <div class="container py-5">
         <div class="mb-5">
             <h2 class="text-white fw-bold mb-1">
-                <i class="bi bi-grid me-2 text-info"></i>Panel de Administrador
+                <i class="bi bi-grid me-2 text-info"></i>Panel del Chofer
             </h2>
             <p class="text-white-50">Selecciona un módulo para continuar.</p>
         </div>
 
         <div class="row g-4">
             <div class="col-12 col-sm-6 col-lg-4">
-                <a asp-controller="Chofer" asp-action="Index" class="text-decoration-none">
+                <a asp-controller="Pasajero" asp-action="Index" class="text-decoration-none">
                     <div class="glass-card p-4">
                         <div class="mb-3">
-                            <i class="bi bi-person-badge fs-1 text-info"></i>
+                            <i class="bi bi-people fs-1 text-info"></i>
                         </div>
-                        <h5 class="fw-bold text-white mb-1">Gestión de Choferes</h5>
-                        <p class="text-white-50 small mb-0">Registrar y administrar choferes del sistema.</p>
+                        <h5 class="fw-bold text-white mb-1">Registro de Pasajeros</h5>
+                        <p class="text-white-50 small mb-0">Registrar y administrar pasajeros del sistema.</p>
                     </div>
                 </a>
             </div>

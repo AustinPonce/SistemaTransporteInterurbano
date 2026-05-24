@@ -1,14 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SistemaTransporteInterurbano.BL.Interfaces;
 using SistemaTransporteInterurbano.WEB.Models.ViewModels;
+using SistemaTransporteInterurbano.Models;
 
 namespace SistemaTransporteInterurbano.WEB.Controllers;
 
 public class AutenticacionController : Controller
 {
-    private readonly IAutenticacionService
-        _autenticacionService;
-
+    private readonly IAutenticacionService _autenticacionService;
     private readonly INotificacionCorreoService _notificacionCorreoService;
 
     public AutenticacionController(IAutenticacionService autenticacionService, INotificacionCorreoService notificacionCorreoService)
@@ -24,46 +23,43 @@ public class AutenticacionController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult>
-        IniciarSesion(LoginViewModel viewModel)
+    public async Task<IActionResult> IniciarSesion(LoginViewModel viewModel)
     {
         try
         {
             if (!ModelState.IsValid)
-            {
                 return View(viewModel);
-            }
 
-            var usuario =
-                await _autenticacionService
-                    .AutenticarUsuarioPorNombreYClave(
-                        viewModel.NombreUsuario,
-                        viewModel.Clave);
+            var usuario = await _autenticacionService
+                .AutenticarUsuarioPorNombreYClave(
+                    viewModel.NombreUsuario,
+                    viewModel.Clave);
 
-            TempData["MensajeExito"] =
-                "Inicio de sesión exitoso.";
+            HttpContext.Session.SetString("NombreUsuario", usuario!.NombreUsuario);
+            HttpContext.Session.SetString("Rol", usuario.Rol!.Nombre);
+            HttpContext.Session.SetInt32("UsuarioId", usuario.UsuarioId);
 
-            return RedirectToAction(
-                "Index",
-                "Home");
-        }
-            catch (Exception ex)
-          {
-            if (ex.Message ==
-                "Debe cambiar la contraseña antes de continuar.")
+            TempData["MensajeExito"] = "Inicio de sesión exitoso.";
+
+            return usuario.Rol!.Nombre switch
             {
-                TempData["MensajeExito"] =
-                    "Debe cambiar la contraseña para continuar.";
-
-                return RedirectToAction(
-                    "CambiarClave");
+                Roles.Administrador => RedirectToAction("Index", "Home"),
+                Roles.Chofer => RedirectToAction("Index", "Home"),
+                Roles.Pasajero => RedirectToAction("Index", "MisViajes"),
+                _ => RedirectToAction("Index", "Home")
+            };
+        }
+        catch (Exception ex)
+        {
+            if (ex.Message == "Debe cambiar la contraseña antes de continuar.")
+            {
+                TempData["MensajeExito"] = "Debe cambiar la contraseña para continuar.";
+                return RedirectToAction("CambiarClave");
             }
 
             ViewBag.MensajeError = ex.Message;
-
             return View(viewModel);
         }
-
     }
 
     [HttpGet]
@@ -73,33 +69,24 @@ public class AutenticacionController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult>
-        CambiarClave(
-            CambiarClaveViewModel viewModel)
+    public async Task<IActionResult> CambiarClave(CambiarClaveViewModel viewModel)
     {
         try
         {
             if (!ModelState.IsValid)
-            {
                 return View(viewModel);
-            }
 
-            await _autenticacionService
-                .CambiarClaveDeUsuario(
-                    viewModel.NombreUsuario,
-                    viewModel.ClaveActual,
-                    viewModel.NuevaClave);
+            await _autenticacionService.CambiarClaveDeUsuario(
+                viewModel.NombreUsuario,
+                viewModel.ClaveActual,
+                viewModel.NuevaClave);
 
-            TempData["MensajeExito"] =
-                "La clave fue actualizada correctamente.";
-
-            return RedirectToAction(
-                "IniciarSesion");
+            TempData["MensajeExito"] = "La clave fue actualizada correctamente.";
+            return RedirectToAction("IniciarSesion");
         }
         catch (Exception ex)
         {
             ViewBag.MensajeError = ex.Message;
-
             return View(viewModel);
         }
     }
@@ -119,9 +106,7 @@ public class AutenticacionController : Controller
                 return View(vm);
 
             await _autenticacionService.IniciarRecuperacionPorCorreoAsync(vm.Correo);
-
             TempData["MensajeExito"] = "Se envió un código a su correo.";
-
             return RedirectToAction("Resetear");
         }
         catch (Exception ex)
@@ -146,9 +131,7 @@ public class AutenticacionController : Controller
                 return View(vm);
 
             await _autenticacionService.ResetearClaveConCodigoAsync(vm.Correo, vm.Codigo, vm.NuevaClave);
-
             TempData["MensajeExito"] = "La contraseña fue restablecida.";
-
             return RedirectToAction("IniciarSesion");
         }
         catch (Exception ex)
@@ -156,5 +139,11 @@ public class AutenticacionController : Controller
             ViewBag.MensajeError = ex.Message;
             return View(vm);
         }
+    }
+
+    public IActionResult CerrarSesion()
+    {
+        HttpContext.Session.Clear();
+        return RedirectToAction("IniciarSesion");
     }
 }

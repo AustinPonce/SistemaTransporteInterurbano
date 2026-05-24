@@ -6,26 +6,16 @@ using System.Collections.Concurrent;
 
 namespace SistemaTransporteInterurbano.BL.Services;
 
-public class AutenticacionService
-    : IAutenticacionService
+public class AutenticacionService : IAutenticacionService
 {
     private readonly AppDbContext _context;
+    private readonly INotificacionCorreoService _notificacionCorreoService;
+    private static readonly ConcurrentDictionary<string, (string Codigo, DateTime Expiracion)> _inMemoryResets = new();
 
-    private readonly INotificacionCorreoService
-        _notificacionCorreoService;
-
-    private static readonly ConcurrentDictionary<string, (string Codigo, DateTime Expiracion)>
-        _inMemoryResets = new();
-
-    public AutenticacionService(
-        AppDbContext context,
-        INotificacionCorreoService
-            notificacionCorreoService)
+    public AutenticacionService(AppDbContext context, INotificacionCorreoService notificacionCorreoService)
     {
         _context = context;
-
-        _notificacionCorreoService =
-            notificacionCorreoService;
+        _notificacionCorreoService = notificacionCorreoService;
     }
 
     public async Task IniciarRecuperacionPorCorreoAsync(string correo)
@@ -36,7 +26,6 @@ public class AutenticacionService
             throw new Exception("No existe un usuario con ese correo.");
 
         var codigo = new Random().Next(100000, 999999).ToString();
-
         _inMemoryResets[correo] = (codigo, DateTime.Now.AddMinutes(15));
 
         await _notificacionCorreoService.EnviarCorreoAsync(
@@ -69,6 +58,7 @@ public class AutenticacionService
         {
             throw new Exception($"Error al guardar cambios: {ex.InnerException?.Message ?? ex.Message}", ex);
         }
+
         _inMemoryResets.TryRemove(correo, out _);
 
         await _notificacionCorreoService.EnviarCorreoAsync(
@@ -77,43 +67,29 @@ public class AutenticacionService
             "Su contraseña ha sido restablecida correctamente.");
     }
 
-    public async Task<Usuario?>
-        AutenticarUsuarioPorNombreYClave(
-            string nombreUsuario,
-            string clave)
+    public async Task<Usuario?> AutenticarUsuarioPorNombreYClave(string nombreUsuario, string clave)
     {
         var usuario = await _context.Usuarios
             .Include(x => x.Rol)
-            .FirstOrDefaultAsync(x =>
-                x.NombreUsuario == nombreUsuario);
+            .FirstOrDefaultAsync(x => x.NombreUsuario == nombreUsuario);
 
         if (usuario == null)
-        {
-            throw new Exception(
-                "El usuario no existe.");
-        }
+            throw new Exception("El usuario no existe.");
 
         if (usuario.Rol!.Nombre != "Administrador")
         {
-            if (usuario.EstaBloqueado &&
-                usuario.FechaBloqueo > DateTime.Now)
+            if (usuario.EstaBloqueado && usuario.FechaBloqueo > DateTime.Now)
             {
-                await
-                    _notificacionCorreoService
-                    .EnviarCorreoAsync(
-                        usuario.CorreoElectronico,
-                        "Cuenta bloqueada",
-                        $"La cuenta {usuario.NombreUsuario} está bloqueada por 3 minutos.");
+                await _notificacionCorreoService.EnviarCorreoAsync(
+                    usuario.CorreoElectronico,
+                    "Cuenta bloqueada",
+                    $"La cuenta {usuario.NombreUsuario} está bloqueada por 3 minutos.");
 
-                throw new Exception(
-                    "La cuenta está bloqueada temporalmente.");
+                throw new Exception("La cuenta está bloqueada temporalmente.");
             }
         }
 
-        var claveCorrecta =
-            BCrypt.Net.BCrypt.Verify(
-                clave,
-                usuario.Clave);
+        var claveCorrecta = BCrypt.Net.BCrypt.Verify(clave, usuario.Clave);
 
         if (!claveCorrecta)
         {
@@ -124,85 +100,54 @@ public class AutenticacionService
                 if (usuario.IntentosFallidos >= 2)
                 {
                     usuario.EstaBloqueado = true;
+                    usuario.FechaBloqueo = DateTime.Now.AddMinutes(3);
 
-                    usuario.FechaBloqueo =
-                        DateTime.Now.AddMinutes(3);
-
-                    await
-                        _notificacionCorreoService
-                        .EnviarCorreoAsync(
-                            usuario.CorreoElectronico,
-                            "Cuenta bloqueada",
-                            $"La cuenta {usuario.NombreUsuario} está bloqueada por 3 minutos.");
+                    await _notificacionCorreoService.EnviarCorreoAsync(
+                        usuario.CorreoElectronico,
+                        "Cuenta bloqueada",
+                        $"La cuenta {usuario.NombreUsuario} está bloqueada por 3 minutos. Puede reintentar el {DateTime.Now.AddMinutes(3):dd/MM/yyyy} a las {DateTime.Now.AddMinutes(3):HH:mm}.");
                 }
 
                 await _context.SaveChangesAsync();
             }
 
-            throw new Exception(
-                "La clave es incorrecta.");
+            throw new Exception("La clave es incorrecta.");
         }
 
         usuario.IntentosFallidos = 0;
-
         usuario.EstaBloqueado = false;
-
         await _context.SaveChangesAsync();
 
-        await _notificacionCorreoService
-            .EnviarCorreoAsync(
-                usuario.CorreoElectronico,
-                $"Inicio de sesión — {usuario.NombreUsuario}",
-                $"Usted inició sesión el día {DateTime.Now:dd/MM/yyyy} a las {DateTime.Now:HH:mm}");
+        await _notificacionCorreoService.EnviarCorreoAsync(
+            usuario.CorreoElectronico,
+            $"Inicio de sesión — {usuario.NombreUsuario}",
+            $"Usted inició sesión el día {DateTime.Now:dd/MM/yyyy} a las {DateTime.Now:HH:mm}.");
 
         if (usuario.DebeCambiarClave)
-        {
-            throw new Exception(
-                "Debe cambiar la contraseña antes de continuar.");
-        }
+            throw new Exception("Debe cambiar la contraseña antes de continuar.");
 
         return usuario;
     }
 
-    public async Task CambiarClaveDeUsuario(
-        string nombreUsuario,
-        string claveActual,
-        string nuevaClave)
+    public async Task CambiarClaveDeUsuario(string nombreUsuario, string claveActual, string nuevaClave)
     {
-        var usuario = await _context.Usuarios
-            .FirstOrDefaultAsync(x =>
-                x.NombreUsuario == nombreUsuario);
+        var usuario = await _context.Usuarios.FirstOrDefaultAsync(x => x.NombreUsuario == nombreUsuario);
 
         if (usuario == null)
-        {
-            throw new Exception(
-                "El usuario no existe.");
-        }
+            throw new Exception("El usuario no existe.");
 
-        var claveActualCorrecta =
-            BCrypt.Net.BCrypt.Verify(
-                claveActual,
-                usuario.Clave);
+        var claveActualCorrecta = BCrypt.Net.BCrypt.Verify(claveActual, usuario.Clave);
 
         if (!claveActualCorrecta)
-        {
-            throw new Exception(
-                "La clave actual es incorrecta.");
-        }
+            throw new Exception("La clave actual es incorrecta.");
 
-        usuario.Clave =
-            BCrypt.Net.BCrypt
-                .HashPassword(nuevaClave);
-
+        usuario.Clave = BCrypt.Net.BCrypt.HashPassword(nuevaClave);
         usuario.DebeCambiarClave = false;
-
         await _context.SaveChangesAsync();
 
-        await _notificacionCorreoService
-            .EnviarCorreoAsync(
-                usuario.CorreoElectronico,
-                $"Cambio de clave — {usuario.NombreUsuario}",
-                $"La clave fue actualizada el día {DateTime.Now:dd/MM/yyyy} a las {DateTime.Now:HH:mm}");
+        await _notificacionCorreoService.EnviarCorreoAsync(
+            usuario.CorreoElectronico,
+            $"Cambio de clave — {usuario.NombreUsuario}",
+            $"La clave fue actualizada el día {DateTime.Now:dd/MM/yyyy} a las {DateTime.Now:HH:mm}.");
     }
 }
-
