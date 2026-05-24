@@ -24,6 +24,9 @@ public class AppDbContext : DbContext
 
     public DbSet<Unidad> Unidades { get; set; }
 
+    public DbSet<Viaje> Viajes { get; set; }
+    public DbSet<Reserva> Reservas { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
