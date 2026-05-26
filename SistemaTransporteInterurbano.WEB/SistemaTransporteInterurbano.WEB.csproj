@@ -23,7 +23,10 @@
   <None Remove="obj\**" />
 </ItemGroup>
 <ItemGroup>
-  <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.10" />
   <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.10" />
+  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8">
+    <PrivateAssets>all</PrivateAssets>
+    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+  </PackageReference>
 </ItemGroup>
 </Project>
