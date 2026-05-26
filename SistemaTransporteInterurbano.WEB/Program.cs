@@ -18,6 +18,7 @@ builder.Services.AddScoped<IPasajeroService, PasajeroService>();
 builder.Services.AddScoped<IRutaService, RutaService>();
 builder.Services.AddScoped<IUnidadService, UnidadService>();
 
+
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);

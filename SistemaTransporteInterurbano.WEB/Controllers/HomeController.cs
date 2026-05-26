@@ -19,7 +19,8 @@ public class HomeController : Controller
     }
 }
 
-/*using Microsoft.AspNetCore.Mvc;
+/*
+using Microsoft.AspNetCore.Mvc;
 using SistemaTransporteInterurbano.BL.Helpers;
 
 namespace SistemaTransporteInterurbano.WEB.Controllers;
@@ -35,4 +36,5 @@ public class HomeController : Controller
         return Content(hash);
     }
 }
+
 */
