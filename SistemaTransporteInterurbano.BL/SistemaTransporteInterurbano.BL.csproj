@@ -7,6 +7,47 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Properties\launchSettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="obj\Debug\net10.0\.NETCoreApp,Version=v10.0.AssemblyAttributes.cs" />
+    <Compile Include="obj\Debug\net10.0\SistemaTransporteInterurbano.BL.AssemblyInfo.cs" />
+    <Compile Include="obj\Debug\net10.0\SistemaTransporteInterurbano.BL.GlobalUsings.g.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="bin\Debug\net10.0\SistemaTransporteInterurbano.BL.deps.json" />
+    <Content Include="obj\Debug\net10.0\SistemaTransporteInterurbano.BL.csproj.FileListAbsolute.txt" />
+    <Content Include="obj\Debug\net10.0\SistemaTransporteInterurbano.BL.sourcelink.json" />
+    <Content Include="obj\project.assets.json" />
+    <Content Include="obj\SistemaTransporteInterurbano.BL.csproj.nuget.dgspec.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="bin\Debug\net10.0\SistemaTransporteInterurbano.BL.dll" />
+    <None Include="bin\Debug\net10.0\SistemaTransporteInterurbano.BL.pdb" />
+    <None Include="bin\Debug\net10.0\SistemaTransporteInterurbano.DA.dll" />
+    <None Include="bin\Debug\net10.0\SistemaTransporteInterurbano.DA.pdb" />
+    <None Include="bin\Debug\net10.0\SistemaTransporteInterurbano.Models.dll" />
+    <None Include="bin\Debug\net10.0\SistemaTransporteInterurbano.Models.pdb" />
+    <None Include="obj\Debug\net10.0\refint\SistemaTransporteInterurbano.BL.dll" />
+    <None Include="obj\Debug\net10.0\ref\SistemaTransporteInterurbano.BL.dll" />
+    <None Include="obj\Debug\net10.0\SistemaT.0CE74B32.Up2Date" />
+    <None Include="obj\Debug\net10.0\SistemaTransporteInterurbano.BL.AssemblyInfoInputs.cache" />
+    <None Include="obj\Debug\net10.0\SistemaTransporteInterurbano.BL.assets.cache" />
+    <None Include="obj\Debug\net10.0\SistemaTransporteInterurbano.BL.csproj.AssemblyReference.cache" />
+    <None Include="obj\Debug\net10.0\SistemaTransporteInterurbano.BL.csproj.BuildWithSkipAnalyzers" />
+    <None Include="obj\Debug\net10.0\SistemaTransporteInterurbano.BL.csproj.CoreCompileInputs.cache" />
+    <None Include="obj\Debug\net10.0\SistemaTransporteInterurbano.BL.dll" />
+    <None Include="obj\Debug\net10.0\SistemaTransporteInterurbano.BL.GeneratedMSBuildEditorConfig.editorconfig" />
+    <None Include="obj\Debug\net10.0\SistemaTransporteInterurbano.BL.pdb" />
+    <None Include="obj\project.nuget.cache" />
+    <None Include="obj\SistemaTransporteInterurbano.BL.csproj.nuget.g.props" />
+    <None Include="obj\SistemaTransporteInterurbano.BL.csproj.nuget.g.targets" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageReference Include="MailKit" Version="4.16.0" />
     <PackageReference Include="MimeKit" Version="4.16.0" />
@@ -15,6 +56,10 @@
   <ItemGroup>
     <ProjectReference Include="..\SistemaTransporteInterurbano.DA\SistemaTransporteInterurbano.DA.csproj" />
     <ProjectReference Include="..\SistemaTransporteInterurbano.Models\SistemaTransporteInterurbano.Models.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
 
 </Project>
