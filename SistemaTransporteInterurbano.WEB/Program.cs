@@ -17,6 +17,7 @@ builder.Services.AddScoped<IChoferService, ChoferService>();
 builder.Services.AddScoped<IPasajeroService, PasajeroService>();
 builder.Services.AddScoped<IRutaService, RutaService>();
 builder.Services.AddScoped<IUnidadService, UnidadService>();
+builder.Services.AddScoped<IViajeService, ViajeService>();
 
 
 builder.Services.AddSession(options =>

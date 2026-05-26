@@ -1,0 +1,120 @@
+@model SistemaTransporteInterurbano.Models.Entities.Viaje
+
+@{
+    ViewData["Title"] = "Detalle de Viaje Cancelado";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Sistema de Transporte Interurbano</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/glass.css" />
+</head>
+<body>
+
+    <nav class="navbar glass-nav px-4 py-3">
+        <span class="navbar-brand text-white fw-bold fs-5">
+            <i class="bi bi-bus-front me-2 text-info"></i>Sistema de Transporte Interurbano
+        </span>
+        <a asp-controller="Autenticacion" asp-action="CerrarSesion" class="btn btn-cerrar btn-sm">
+            <i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión
+        </a>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-10 col-lg-8">
+
+                <div class="d-flex align-items-center mb-4 gap-3">
+                    <a asp-action="Cancelados" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                        <i class="bi bi-arrow-left me-1"></i>Volver
+                    </a>
+                    <h2 class="fw-bold text-white mb-0">
+                        <i class="bi bi-x-octagon me-2 text-danger"></i>Detalle de Viaje Cancelado
+                    </h2>
+                </div>
+
+                <div class="glass-card p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h4 class="text-white fw-bold mb-0">Viaje #@Model.ViajeId</h4>
+                        <span class="badge bg-danger fs-6">@Model.Estado</span>
+                    </div>
+
+                    <hr class="border-light opacity-25" />
+
+                    <div class="row g-3 text-white">
+                        <div class="col-md-6">
+                            <div class="text-white-50 small mb-1">
+                                <i class="bi bi-signpost-2 me-1"></i>Ruta
+                            </div>
+                            <div class="fw-semibold">@Model.Ruta?.Nombre</div>
+                            <div class="text-white-50 small">
+                                @Model.Ruta?.Origen → @Model.Ruta?.Destino
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="text-white-50 small mb-1">
+                                <i class="bi bi-truck me-1"></i>Unidad
+                            </div>
+                            <div class="fw-semibold">@Model.Unidad?.Placa</div>
+                            <div class="text-white-50 small">
+                                @Model.Unidad?.Modelo (@Model.Unidad?.AnioFabricacion)
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="text-white-50 small mb-1">
+                                <i class="bi bi-person-badge me-1"></i>Chofer asignado
+                            </div>
+                            <div class="fw-semibold">@Model.Chofer?.Nombre @Model.Chofer?.Apellidos</div>
+                            <div class="text-white-50 small">Cédula: @Model.Chofer?.Identificacion</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="text-white-50 small mb-1">
+                                <i class="bi bi-clock me-1"></i>Duración estimada
+                            </div>
+                            <div class="fw-semibold">
+                                @(Model.Ruta != null ? Model.Ruta.DuracionEstimada.ToString(@"hh\:mm") : "—")
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="text-white-50 small mb-1">
+                                <i class="bi bi-calendar-event me-1"></i>Fecha y hora de salida
+                            </div>
+                            <div class="fw-semibold">@Model.FechaSalida.ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="text-white-50 small mb-1">
+                                <i class="bi bi-calendar-check me-1"></i>Fecha y hora estimada de llegada
+                            </div>
+                            <div class="fw-semibold">@Model.FechaLlegadaEstimada.ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 border border-danger border-opacity-50">
+                    <h5 class="text-danger fw-bold mb-3">
+                        <i class="bi bi-exclamation-octagon me-2"></i>Motivo de cancelación
+                    </h5>
+                    <p class="text-white mb-0" style="white-space: pre-wrap;">
+                        @(string.IsNullOrWhiteSpace(Model.MotivoCancelacion) ? "Sin motivo registrado." : Model.MotivoCancelacion)
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
