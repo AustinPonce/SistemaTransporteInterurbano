@@ -1,4 +1,3 @@
-﻿// BL/Services/ViajeService.cs
 using Microsoft.EntityFrameworkCore;
 using SistemaTransporteInterurbano.BL.Interfaces;
 using SistemaTransporteInterurbano.DA.Context;
@@ -9,27 +8,24 @@ namespace SistemaTransporteInterurbano.BL.Services
     public class ViajeService : IViajeService
     {
         private readonly AppDbContext _context;
-        private readonly INotificacionCorreoService _correoService;
 
-        public ViajeService(AppDbContext context, INotificacionCorreoService correoService)
+        public ViajeService(AppDbContext context)
         {
             _context = context;
-            _correoService = correoService;
         }
 
-        // ══════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
         // MÓDULO 6 — Gestión de Viajes
-        // ══════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
 
-        // REQ #24 — Listar viajes con filtro por ruta o fecha
-        public async Task<List<Viaje>> ListarViajesAsync(
-            string? filtroRuta = null,
-            DateTime? filtroFecha = null)
+        // Req #24 — Listar viajes con filtro por ruta o fecha
+        public async Task<List<Viaje>> ObtenerTodosAsync(string? filtroRuta, DateTime? filtroFecha)
         {
             var query = _context.Viajes
                 .Include(v => v.Ruta)
                 .Include(v => v.Unidad)
                 .Include(v => v.Chofer)
+                .Include(v => v.Reservas)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(filtroRuta))
@@ -38,162 +34,157 @@ namespace SistemaTransporteInterurbano.BL.Services
             if (filtroFecha.HasValue)
                 query = query.Where(v => v.FechaSalida.Date == filtroFecha.Value.Date);
 
-            return await query
-                .OrderBy(v => v.FechaSalida)
-                .ToListAsync();
+            return await query.OrderBy(v => v.FechaSalida).ToListAsync();
         }
 
-        // REQ #25-27 — Agregar viaje
-        public async Task<(bool exito, string mensaje)> AgregarViajeAsync(Viaje viaje)
-        {
-            // REQ #26 — Validar traslape del CHOFER
-            bool choferOcupado = await TieneViajeActivoEnRangoAsync(
-                choferId: viaje.ChoferId,
-                unidadId: null,
-                salida: viaje.FechaSalida,
-                llegada: viaje.FechaLlegadaEstimada,
-                excluirViajeId: null);
-
-            if (choferOcupado)
-                return (false, "El chofer ya tiene un viaje activo en ese rango de fechas y horas.");
-
-            // REQ #26 — Validar traslape de la UNIDAD
-            bool unidadOcupada = await TieneViajeActivoEnRangoAsync(
-                choferId: null,
-                unidadId: viaje.UnidadId,
-                salida: viaje.FechaSalida,
-                llegada: viaje.FechaLlegadaEstimada,
-                excluirViajeId: null);
-
-            if (unidadOcupada)
-                return (false, "La unidad ya está asignada a otro viaje activo en ese rango de fechas y horas.");
-
-            // REQ #27 — Estado inicial y número correlativo
-            viaje.Estado = EstadoViaje.Programado;
-            viaje.NumeroViaje = await GenerarNumeroViajeAsync();
-
-            _context.Viajes.Add(viaje);
-            await _context.SaveChangesAsync();
-            return (true, "Viaje registrado correctamente.");
-        }
-
-        // REQ #28-29 — Editar viaje (solo si está Programado)
-        public async Task<(bool exito, string mensaje)> EditarViajeAsync(Viaje viaje)
-        {
-            var existente = await _context.Viajes.FindAsync(viaje.ViajeId);
-
-            if (existente is null)
-                return (false, "El viaje no existe.");
-
-            // REQ #29 — Restricción de estado
-            if (existente.Estado != EstadoViaje.Programado)
-                return (false, "Solo se pueden editar viajes en estado Programado.");
-
-            // REQ #26 reutilizado — Revalidar traslapes excluyendo el viaje actual
-            bool choferOcupado = await TieneViajeActivoEnRangoAsync(
-                choferId: viaje.ChoferId,
-                unidadId: null,
-                salida: viaje.FechaSalida,
-                llegada: viaje.FechaLlegadaEstimada,
-                excluirViajeId: viaje.ViajeId);
-
-            if (choferOcupado)
-                return (false, "El chofer ya tiene un viaje activo en ese rango de fechas y horas.");
-
-            bool unidadOcupada = await TieneViajeActivoEnRangoAsync(
-                choferId: null,
-                unidadId: viaje.UnidadId,
-                salida: viaje.FechaSalida,
-                llegada: viaje.FechaLlegadaEstimada,
-                excluirViajeId: viaje.ViajeId);
-
-            if (unidadOcupada)
-                return (false, "La unidad ya está asignada a otro viaje activo en ese rango de fechas y horas.");
-
-            // Aplicar cambios solo a campos editables
-            existente.RutaId = viaje.RutaId;
-            existente.UnidadId = viaje.UnidadId;
-            existente.ChoferId = viaje.ChoferId;
-            existente.FechaSalida = viaje.FechaSalida;
-            existente.FechaLlegadaEstimada = viaje.FechaLlegadaEstimada;
-
-            await _context.SaveChangesAsync();
-            return (true, "Viaje actualizado correctamente.");
-        }
-
-        // REQ #30-31 — Cancelar viaje con motivo y notificación a pasajeros
-        public async Task<(bool exito, string mensaje)> CancelarViajeAsync(
-            int viajeId,
-            string motivo)
-        {
-            // REQ #30 — Motivo obligatorio
-            if (string.IsNullOrWhiteSpace(motivo))
-                return (false, "Debe ingresar un motivo de cancelación.");
-
-            var viaje = await _context.Viajes
-                .Include(v => v.Ruta)
-                .Include(v => v.Reservas)
-                    .ThenInclude(r => r.Pasajero) // Asume Pasajero tiene Nombre y Correo
-                .FirstOrDefaultAsync(v => v.ViajeId == viajeId);
-
-            if (viaje is null)
-                return (false, "El viaje no existe.");
-
-            // REQ #30 — Solo viajes Programados
-            if (viaje.Estado != EstadoViaje.Programado)
-                return (false, "Solo se pueden cancelar viajes en estado Programado.");
-
-            viaje.Estado = EstadoViaje.Cancelado;
-            viaje.MotivoCancelacion = motivo;
-            await _context.SaveChangesAsync();
-
-            // REQ #31 — Notificar a cada pasajero con reserva activa
-            foreach (var reserva in viaje.Reservas)
-            {
-                await _correoService.EnviarCorreoAsync(
-                    destino: reserva.Pasajero.CorreoElectronico,
-                    asunto: $"Viaje cancelado — {viaje.Ruta.Nombre}",
-                    mensaje: $"Estimado/a {reserva.Pasajero.Nombre},\n\n" +
-                            $"Le informamos que el viaje #{viaje.NumeroViaje} con ruta " +
-                            $"{viaje.Ruta.Nombre}, programado para el " +
-                            $"{viaje.FechaSalida:dd/MM/yyyy} a las {viaje.FechaSalida:HH:mm}, " +
-                            $"ha sido cancelado.\n\n" +
-                            $"Motivo: {motivo}"
-                );
-            }
-
-            return (true, "Viaje cancelado y pasajeros notificados.");
-        }
-
-        // REQ #32 — Iniciar viaje (Programado → En Curso)
-        public async Task<(bool exito, string mensaje)> IniciarViajeAsync(int viajeId)
-        {
-            var viaje = await _context.Viajes.FindAsync(viajeId);
-
-            if (viaje is null)
-                return (false, "El viaje no existe.");
-
-            if (viaje.Estado != EstadoViaje.Programado)
-                return (false, "Solo se pueden iniciar viajes en estado Programado.");
-
-            viaje.Estado = EstadoViaje.EnCurso;
-            await _context.SaveChangesAsync();
-            return (true, "El viaje ha iniciado correctamente.");
-        }
-
-        // Obtener viaje por Id (usado en vistas de edición/cancelación)
-        public async Task<Viaje?> ObtenerPorIdAsync(int viajeId)
+        // Obtener un viaje por id (para editar / cancelar / iniciar)
+        public async Task<Viaje?> ObtenerPorIdAsync(int id)
         {
             return await _context.Viajes
                 .Include(v => v.Ruta)
                 .Include(v => v.Unidad)
                 .Include(v => v.Chofer)
-                .FirstOrDefaultAsync(v => v.ViajeId == viajeId);
+                .Include(v => v.Reservas)
+                    .ThenInclude(r => r.Pasajero)
+                .FirstOrDefaultAsync(v => v.ViajeId == id);
         }
 
-        // ══════════════════════════════════════════════════════
-        // MÓDULO 7 — Viajes en Curso (tu código original)
-        // ══════════════════════════════════════════════════════
+        // Req #25-27 — Agregar viaje validando conflicto de unidad y chofer
+        public async Task AgregarAsync(int rutaId, int unidadId, int choferId,
+                                       DateTime fechaSalida, DateTime fechaLlegada)
+        {
+            if (fechaLlegada <= fechaSalida)
+                throw new Exception("La fecha de llegada debe ser posterior a la de salida.");
+
+            // Req #26 — Validar que la unidad no tenga viaje activo en ese rango
+            bool unidadOcupada = await _context.Viajes.AnyAsync(v =>
+                v.UnidadId == unidadId &&
+                (v.Estado == EstadoViaje.Programado || v.Estado == EstadoViaje.EnCurso) &&
+                v.FechaSalida < fechaLlegada && v.FechaLlegadaEstimada > fechaSalida);
+
+            if (unidadOcupada)
+                throw new Exception("La unidad seleccionada ya tiene un viaje activo en ese rango de fechas.");
+
+            // Req #26 — Validar que el chofer no tenga viaje activo en ese rango
+            bool choferOcupado = await _context.Viajes.AnyAsync(v =>
+                v.ChoferId == choferId &&
+                (v.Estado == EstadoViaje.Programado || v.Estado == EstadoViaje.EnCurso) &&
+                v.FechaSalida < fechaLlegada && v.FechaLlegadaEstimada > fechaSalida);
+
+            if (choferOcupado)
+                throw new Exception("El chofer seleccionado ya tiene un viaje activo en ese rango de fechas.");
+
+            // Req #27 — Crear en estado Programado
+            var viaje = new Viaje
+            {
+                RutaId = rutaId,
+                UnidadId = unidadId,
+                ChoferId = choferId,
+                FechaSalida = fechaSalida,
+                FechaLlegadaEstimada = fechaLlegada,
+                Estado = EstadoViaje.Programado
+            };
+
+            _context.Viajes.Add(viaje);
+            await _context.SaveChangesAsync();
+        }
+
+        // Req #28-29 — Editar viaje (solo si está Programado)
+        public async Task EditarAsync(int id, int rutaId, int unidadId, int choferId,
+                                      DateTime fechaSalida, DateTime fechaLlegada)
+        {
+            var viaje = await _context.Viajes.FindAsync(id)
+                ?? throw new Exception("Viaje no encontrado.");
+
+            if (viaje.Estado != EstadoViaje.Programado)
+                throw new Exception("Solo se pueden editar viajes en estado Programado.");
+
+            if (fechaLlegada <= fechaSalida)
+                throw new Exception("La fecha de llegada debe ser posterior a la de salida.");
+
+            // Validar conflicto de unidad (excluyendo el viaje actual)
+            bool unidadOcupada = await _context.Viajes.AnyAsync(v =>
+                v.ViajeId != id &&
+                v.UnidadId == unidadId &&
+                (v.Estado == EstadoViaje.Programado || v.Estado == EstadoViaje.EnCurso) &&
+                v.FechaSalida < fechaLlegada && v.FechaLlegadaEstimada > fechaSalida);
+
+            if (unidadOcupada)
+                throw new Exception("La unidad ya tiene un viaje activo en ese rango de fechas.");
+
+            // Validar conflicto de chofer (excluyendo el viaje actual)
+            bool choferOcupado = await _context.Viajes.AnyAsync(v =>
+                v.ViajeId != id &&
+                v.ChoferId == choferId &&
+                (v.Estado == EstadoViaje.Programado || v.Estado == EstadoViaje.EnCurso) &&
+                v.FechaSalida < fechaLlegada && v.FechaLlegadaEstimada > fechaSalida);
+
+            if (choferOcupado)
+                throw new Exception("El chofer ya tiene un viaje activo en ese rango de fechas.");
+
+            viaje.RutaId = rutaId;
+            viaje.UnidadId = unidadId;
+            viaje.ChoferId = choferId;
+            viaje.FechaSalida = fechaSalida;
+            viaje.FechaLlegadaEstimada = fechaLlegada;
+
+            await _context.SaveChangesAsync();
+        }
+
+        // Req #30-31 — Cancelar viaje con motivo y notificar pasajeros
+        public async Task CancelarAsync(int id, string motivo, INotificacionCorreoService correoService)
+        {
+            var viaje = await _context.Viajes
+                .Include(v => v.Reservas)
+                    .ThenInclude(r => r.Pasajero)
+                .Include(v => v.Ruta)
+                .FirstOrDefaultAsync(v => v.ViajeId == id)
+                ?? throw new Exception("Viaje no encontrado.");
+
+            if (viaje.Estado != EstadoViaje.Programado)
+                throw new Exception("Solo se pueden cancelar viajes en estado Programado.");
+
+            viaje.Estado = EstadoViaje.Cancelado;
+            viaje.MotivoCancelacion = motivo;
+            await _context.SaveChangesAsync();
+
+            // Req #31 — Notificar a cada pasajero con reserva
+            foreach (var reserva in viaje.Reservas)
+            {
+                if (reserva.Pasajero != null)
+                {
+                    try
+                    {
+                        await correoService.EnviarCorreoAsync(
+                            reserva.Pasajero.CorreoElectronico,
+                            $"Viaje cancelado — {viaje.Ruta?.Nombre}",
+                            $"Estimado/a {reserva.Pasajero.Nombre} {reserva.Pasajero.Apellidos},\n\n" +
+                            $"Le informamos que el viaje de la ruta \"{viaje.Ruta?.Nombre}\" " +
+                            $"programado para el {viaje.FechaSalida:dd/MM/yyyy} a las {viaje.FechaSalida:HH:mm} " +
+                            $"ha sido cancelado.\n\nMotivo: {motivo}\n\nDisculpe los inconvenientes."
+                        );
+                    }
+                    catch { /* No bloquear si falla el correo de un pasajero */ }
+                }
+            }
+        }
+
+        // Req #32 — Iniciar viaje: Programado → En Curso
+        public async Task IniciarAsync(int id)
+        {
+            var viaje = await _context.Viajes.FindAsync(id)
+                ?? throw new Exception("Viaje no encontrado.");
+
+            if (viaje.Estado != EstadoViaje.Programado)
+                throw new Exception("Solo se pueden iniciar viajes en estado Programado.");
+
+            viaje.Estado = EstadoViaje.EnCurso;
+            await _context.SaveChangesAsync();
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // MÓDULO 7 — Viajes en Curso
+        // ══════════════════════════════════════════════════════════════
 
         public async Task<List<Viaje>> ObtenerActivosAsync()
         {
@@ -212,32 +203,27 @@ namespace SistemaTransporteInterurbano.BL.Services
                 .Include(v => v.Ruta)
                 .Include(v => v.Unidad)
                 .Include(v => v.Reservas)
-                .FirstOrDefaultAsync(v => v.ViajeId == viajeId);
-
-            if (viaje == null)
-                throw new Exception("Viaje no encontrado.");
+                .FirstOrDefaultAsync(v => v.ViajeId == viajeId)
+                ?? throw new Exception("Viaje no encontrado.");
 
             if (viaje.Estado != EstadoViaje.EnCurso)
                 throw new Exception("El viaje no está en curso.");
 
-            bool asientoOcupado = await _context.Reservas
-                .AnyAsync(r => r.ViajeId == viajeId && r.NumeroAsiento == asiento);
-
+            bool asientoOcupado = viaje.Reservas.Any(r => r.NumeroAsiento == asiento);
             if (asientoOcupado)
                 throw new Exception("Ese asiento ya está ocupado.");
 
             if (viaje.Reservas.Count >= viaje.Unidad.CapacidadPasajeros)
                 throw new Exception("Capacidad máxima alcanzada.");
 
-            var reserva = new Reserva
+            _context.Reservas.Add(new Reserva
             {
                 ViajeId = viajeId,
                 PasajeroId = pasajeroId,
                 NumeroAsiento = asiento,
                 MontoPagado = viaje.Ruta.PrecioBase
-            };
+            });
 
-            _context.Reservas.Add(reserva);
             await _context.SaveChangesAsync();
         }
 
@@ -252,11 +238,8 @@ namespace SistemaTransporteInterurbano.BL.Services
 
         public async Task CancelarReservaAsync(int reservaId)
         {
-            var reserva = await _context.Reservas
-                .FirstOrDefaultAsync(r => r.ReservaId == reservaId);
-
-            if (reserva == null)
-                throw new Exception("Reserva no encontrada.");
+            var reserva = await _context.Reservas.FindAsync(reservaId)
+                ?? throw new Exception("Reserva no encontrada.");
 
             _context.Reservas.Remove(reserva);
             await _context.SaveChangesAsync();
@@ -264,11 +247,8 @@ namespace SistemaTransporteInterurbano.BL.Services
 
         public async Task FinalizarViajeAsync(int viajeId)
         {
-            var viaje = await _context.Viajes
-                .FirstOrDefaultAsync(v => v.ViajeId == viajeId);
-
-            if (viaje == null)
-                throw new Exception("Viaje no encontrado.");
+            var viaje = await _context.Viajes.FindAsync(viajeId)
+                ?? throw new Exception("Viaje no encontrado.");
 
             if (viaje.Estado != EstadoViaje.EnCurso)
                 throw new Exception("Solo se pueden finalizar viajes en curso.");
@@ -282,21 +262,34 @@ namespace SistemaTransporteInterurbano.BL.Services
             var viaje = await _context.Viajes
                 .Include(v => v.Unidad)
                 .Include(v => v.Reservas)
-                .FirstOrDefaultAsync(v => v.ViajeId == viajeId);
-
-            if (viaje == null)
-                throw new Exception("Viaje no encontrado.");
+                .FirstOrDefaultAsync(v => v.ViajeId == viajeId)
+                ?? throw new Exception("Viaje no encontrado.");
 
             int pasajeros = viaje.Reservas.Count;
             int disponibles = viaje.Unidad.CapacidadPasajeros - pasajeros;
             decimal total = viaje.Reservas.Sum(r => r.MontoPagado);
-
             return (pasajeros, disponibles, total);
         }
 
-        // ══════════════════════════════════════════════════════
-        // MÓDULO 9 — Mis Viajes (tu código original)
-        // ══════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
+        // MÓDULO 8 — Viajes Cancelados
+        // ══════════════════════════════════════════════════════════════
+
+        // Req #43 — Listar todos los viajes en estado Cancelado
+        public async Task<List<Viaje>> ObtenerCanceladosAsync()
+        {
+            return await _context.Viajes
+                .Include(v => v.Ruta)
+                .Include(v => v.Unidad)
+                .Include(v => v.Chofer)
+                .Where(v => v.Estado == EstadoViaje.Cancelado)
+                .OrderByDescending(v => v.FechaSalida)
+                .ToListAsync();
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // MÓDULO 9 — Mis Viajes (Pasajero)
+        // ══════════════════════════════════════════════════════════════
 
         public async Task<List<Reserva>> ObtenerReservasPasajeroAsync(int pasajeroId)
         {
@@ -315,47 +308,6 @@ namespace SistemaTransporteInterurbano.BL.Services
                 .Include(v => v.Chofer)
                 .Include(v => v.Reservas)
                 .FirstOrDefaultAsync(v => v.ViajeId == viajeId);
-        }
-
-        // ══════════════════════════════════════════════════════
-        // Métodos auxiliares privados
-        // ══════════════════════════════════════════════════════
-
-        // Detecta traslape de horario para chofer o unidad (REQ #26)
-        private async Task<bool> TieneViajeActivoEnRangoAsync(
-            int? choferId,
-            int? unidadId,
-            DateTime salida,
-            DateTime llegada,
-            int? excluirViajeId)
-        {
-            var query = _context.Viajes
-                .Where(v =>
-                    (v.Estado == EstadoViaje.Programado || v.Estado == EstadoViaje.EnCurso) &&
-                    salida < v.FechaLlegadaEstimada &&   // lógica estándar de traslape
-                    llegada > v.FechaSalida);
-
-            if (excluirViajeId.HasValue)
-                query = query.Where(v => v.ViajeId != excluirViajeId.Value);
-
-            if (choferId.HasValue)
-                query = query.Where(v => v.ChoferId == choferId.Value);
-
-            if (unidadId.HasValue)
-                query = query.Where(v => v.UnidadId == unidadId.Value);
-
-            return await query.AnyAsync();
-        }
-
-        // Genera el siguiente número correlativo de viaje
-        private async Task<int> GenerarNumeroViajeAsync()
-        {
-            var ultimo = await _context.Viajes
-                .OrderByDescending(v => v.NumeroViaje)
-                .Select(v => v.NumeroViaje)
-                .FirstOrDefaultAsync();
-
-            return ultimo + 1;
         }
     }
 }

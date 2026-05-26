@@ -1,19 +1,18 @@
-﻿// BL/Interfaces/IViajeService.cs
 using SistemaTransporteInterurbano.Models.Entities;
 
 namespace SistemaTransporteInterurbano.BL.Interfaces
 {
     public interface IViajeService
     {
-        // ── Módulo 6 ──────────────────────────────────────────
-        Task<List<Viaje>> ListarViajesAsync(string? filtroRuta = null, DateTime? filtroFecha = null);
-        Task<(bool exito, string mensaje)> AgregarViajeAsync(Viaje viaje);
-        Task<(bool exito, string mensaje)> EditarViajeAsync(Viaje viaje);
-        Task<(bool exito, string mensaje)> CancelarViajeAsync(int viajeId, string motivo);
-        Task<(bool exito, string mensaje)> IniciarViajeAsync(int viajeId);
-        Task<Viaje?> ObtenerPorIdAsync(int viajeId);
+        // ── MÓDULO 6 — Gestión de Viajes ──────────────────────────────
+        Task<List<Viaje>> ObtenerTodosAsync(string? filtroRuta, DateTime? filtroFecha);
+        Task<Viaje?> ObtenerPorIdAsync(int id);
+        Task AgregarAsync(int rutaId, int unidadId, int choferId, DateTime fechaSalida, DateTime fechaLlegada);
+        Task EditarAsync(int id, int rutaId, int unidadId, int choferId, DateTime fechaSalida, DateTime fechaLlegada);
+        Task CancelarAsync(int id, string motivo, INotificacionCorreoService correoService);
+        Task IniciarAsync(int id);
 
-        // ── Módulo 7 ──────────────────────────────────────────
+        // ── MÓDULO 7 — Viajes en Curso ────────────────────────────────
         Task<List<Viaje>> ObtenerActivosAsync();
         Task ReservarAsientoAsync(int viajeId, int pasajeroId, int asiento);
         Task<List<Reserva>> ObtenerPasajerosAsync(int viajeId);
@@ -21,7 +20,10 @@ namespace SistemaTransporteInterurbano.BL.Interfaces
         Task FinalizarViajeAsync(int viajeId);
         Task<(int pasajeros, int disponibles, decimal total)> ObtenerTotalesAsync(int viajeId);
 
-        // ── Módulo 9 ──────────────────────────────────────────
+        // ── MÓDULO 8 — Viajes Cancelados ─────────────────────────────
+        Task<List<Viaje>> ObtenerCanceladosAsync();
+
+        // ── MÓDULO 9 — Mis Viajes (Pasajero) ─────────────────────────
         Task<List<Reserva>> ObtenerReservasPasajeroAsync(int pasajeroId);
         Task<Viaje?> ObtenerDetalleAsync(int viajeId);
     }
