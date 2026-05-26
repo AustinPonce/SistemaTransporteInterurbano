@@ -30,5 +30,18 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Elimina la cascada en Reservas para evitar múltiples rutas de borrado
+        modelBuilder.Entity<Reserva>()
+            .HasOne(r => r.Viaje)
+            .WithMany(v => v.Reservas)
+            .HasForeignKey(r => r.ViajeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Reserva>()
+            .HasOne(r => r.Pasajero)
+            .WithMany()
+            .HasForeignKey(r => r.PasajeroId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
