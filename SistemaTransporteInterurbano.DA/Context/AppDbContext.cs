@@ -31,7 +31,6 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Elimina la cascada en Reservas para evitar múltiples rutas de borrado
         modelBuilder.Entity<Reserva>()
             .HasOne(r => r.Viaje)
             .WithMany(v => v.Reservas)

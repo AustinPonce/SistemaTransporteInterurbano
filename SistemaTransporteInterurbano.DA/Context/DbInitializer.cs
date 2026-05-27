@@ -8,7 +8,6 @@ public static class DbInitializer
 {
     public static async Task InitializeAsync(AppDbContext context)
     {
-        // Si la tabla Roles no existe, Any() lanzará una excepción; el llamador debe manejarlo.
         if (!context.Roles.Any())
         {
             context.Roles.AddRange(

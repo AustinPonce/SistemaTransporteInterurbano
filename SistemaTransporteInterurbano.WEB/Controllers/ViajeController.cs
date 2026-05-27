@@ -37,7 +37,6 @@ public class ViajeController : Controller
         return null;
     }
 
-    // Req #24 — Listar con filtro por ruta o fecha
     [HttpGet]
     public async Task<IActionResult> Index(string? filtroRuta, DateTime? filtroFecha)
     {
@@ -50,7 +49,6 @@ public class ViajeController : Controller
         return View(viajes);
     }
 
-    // Req #25 — Agregar viaje
     [HttpGet]
     public async Task<IActionResult> Agregar()
     {
@@ -93,7 +91,6 @@ public class ViajeController : Controller
         }
     }
 
-    // Req #28-29 — Editar viaje (solo Programado)
     [HttpGet]
     public async Task<IActionResult> Editar(int id)
     {
@@ -151,7 +148,6 @@ public class ViajeController : Controller
         }
     }
 
-    // Req #30-31 — Cancelar viaje con motivo y notificación
     [HttpGet]
     public async Task<IActionResult> Cancelar(int id)
     {
@@ -195,7 +191,6 @@ public class ViajeController : Controller
         }
     }
 
-    // Req #32 — Iniciar viaje
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Iniciar(int id)
@@ -216,9 +211,6 @@ public class ViajeController : Controller
         return RedirectToAction("Index");
     }
 
-    // ── MÓDULO 8 — Viajes Cancelados ─────────────────────────────────
-
-    // Req #43 — Listar viajes cancelados
     [HttpGet]
     public async Task<IActionResult> Cancelados()
     {
@@ -229,7 +221,6 @@ public class ViajeController : Controller
         return View(viajes);
     }
 
-    // Req #44 — Detalle del viaje cancelado (incluye motivo)
     [HttpGet]
     public async Task<IActionResult> DetalleCancelado(int id)
     {

@@ -14,11 +14,6 @@ namespace SistemaTransporteInterurbano.BL.Services
             _context = context;
         }
 
-        // ══════════════════════════════════════════════════════════════
-        // MÓDULO 6 — Gestión de Viajes
-        // ══════════════════════════════════════════════════════════════
-
-        // Req #24 — Listar viajes con filtro por ruta o fecha
         public async Task<List<Viaje>> ObtenerTodosAsync(string? filtroRuta, DateTime? filtroFecha)
         {
             var query = _context.Viajes
@@ -37,7 +32,6 @@ namespace SistemaTransporteInterurbano.BL.Services
             return await query.OrderBy(v => v.FechaSalida).ToListAsync();
         }
 
-        // Obtener un viaje por id (para editar / cancelar / iniciar)
         public async Task<Viaje?> ObtenerPorIdAsync(int id)
         {
             return await _context.Viajes
@@ -49,14 +43,12 @@ namespace SistemaTransporteInterurbano.BL.Services
                 .FirstOrDefaultAsync(v => v.ViajeId == id);
         }
 
-        // Req #25-27 — Agregar viaje validando conflicto de unidad y chofer
         public async Task AgregarAsync(int rutaId, int unidadId, int choferId,
                                        DateTime fechaSalida, DateTime fechaLlegada)
         {
             if (fechaLlegada <= fechaSalida)
                 throw new Exception("La fecha de llegada debe ser posterior a la de salida.");
 
-            // Req #26 — Validar que la unidad no tenga viaje activo en ese rango
             bool unidadOcupada = await _context.Viajes.AnyAsync(v =>
                 v.UnidadId == unidadId &&
                 (v.Estado == EstadoViaje.Programado || v.Estado == EstadoViaje.EnCurso) &&
@@ -65,7 +57,6 @@ namespace SistemaTransporteInterurbano.BL.Services
             if (unidadOcupada)
                 throw new Exception("La unidad seleccionada ya tiene un viaje activo en ese rango de fechas.");
 
-            // Req #26 — Validar que el chofer no tenga viaje activo en ese rango
             bool choferOcupado = await _context.Viajes.AnyAsync(v =>
                 v.ChoferId == choferId &&
                 (v.Estado == EstadoViaje.Programado || v.Estado == EstadoViaje.EnCurso) &&
@@ -74,7 +65,6 @@ namespace SistemaTransporteInterurbano.BL.Services
             if (choferOcupado)
                 throw new Exception("El chofer seleccionado ya tiene un viaje activo en ese rango de fechas.");
 
-            // Req #27 — Crear en estado Programado
             var viaje = new Viaje
             {
                 RutaId = rutaId,
@@ -89,7 +79,6 @@ namespace SistemaTransporteInterurbano.BL.Services
             await _context.SaveChangesAsync();
         }
 
-        // Req #28-29 — Editar viaje (solo si está Programado)
         public async Task EditarAsync(int id, int rutaId, int unidadId, int choferId,
                                       DateTime fechaSalida, DateTime fechaLlegada)
         {
@@ -102,7 +91,6 @@ namespace SistemaTransporteInterurbano.BL.Services
             if (fechaLlegada <= fechaSalida)
                 throw new Exception("La fecha de llegada debe ser posterior a la de salida.");
 
-            // Validar conflicto de unidad (excluyendo el viaje actual)
             bool unidadOcupada = await _context.Viajes.AnyAsync(v =>
                 v.ViajeId != id &&
                 v.UnidadId == unidadId &&
@@ -112,7 +100,6 @@ namespace SistemaTransporteInterurbano.BL.Services
             if (unidadOcupada)
                 throw new Exception("La unidad ya tiene un viaje activo en ese rango de fechas.");
 
-            // Validar conflicto de chofer (excluyendo el viaje actual)
             bool choferOcupado = await _context.Viajes.AnyAsync(v =>
                 v.ViajeId != id &&
                 v.ChoferId == choferId &&
@@ -131,7 +118,6 @@ namespace SistemaTransporteInterurbano.BL.Services
             await _context.SaveChangesAsync();
         }
 
-        // Req #30-31 — Cancelar viaje con motivo y notificar pasajeros
         public async Task CancelarAsync(int id, string motivo, INotificacionCorreoService correoService)
         {
             var viaje = await _context.Viajes
@@ -148,7 +134,6 @@ namespace SistemaTransporteInterurbano.BL.Services
             viaje.MotivoCancelacion = motivo;
             await _context.SaveChangesAsync();
 
-            // Req #31 — Notificar a cada pasajero con reserva
             foreach (var reserva in viaje.Reservas)
             {
                 if (reserva.Pasajero != null)
@@ -164,12 +149,11 @@ namespace SistemaTransporteInterurbano.BL.Services
                             $"ha sido cancelado.\n\nMotivo: {motivo}\n\nDisculpe los inconvenientes."
                         );
                     }
-                    catch { /* No bloquear si falla el correo de un pasajero */ }
+                    catch { }
                 }
             }
         }
 
-        // Req #32 — Iniciar viaje: Programado → En Curso
         public async Task IniciarAsync(int id)
         {
             var viaje = await _context.Viajes.FindAsync(id)
@@ -181,10 +165,6 @@ namespace SistemaTransporteInterurbano.BL.Services
             viaje.Estado = EstadoViaje.EnCurso;
             await _context.SaveChangesAsync();
         }
-
-        // ══════════════════════════════════════════════════════════════
-        // MÓDULO 7 — Viajes en Curso
-        // ══════════════════════════════════════════════════════════════
 
         public async Task<List<Viaje>> ObtenerActivosAsync()
         {
@@ -271,11 +251,6 @@ namespace SistemaTransporteInterurbano.BL.Services
             return (pasajeros, disponibles, total);
         }
 
-        // ══════════════════════════════════════════════════════════════
-        // MÓDULO 8 — Viajes Cancelados
-        // ══════════════════════════════════════════════════════════════
-
-        // Req #43 — Listar todos los viajes en estado Cancelado
         public async Task<List<Viaje>> ObtenerCanceladosAsync()
         {
             return await _context.Viajes
@@ -286,10 +261,6 @@ namespace SistemaTransporteInterurbano.BL.Services
                 .OrderByDescending(v => v.FechaSalida)
                 .ToListAsync();
         }
-
-        // ══════════════════════════════════════════════════════════════
-        // MÓDULO 9 — Mis Viajes (Pasajero)
-        // ══════════════════════════════════════════════════════════════
 
         public async Task<List<Reserva>> ObtenerReservasPasajeroAsync(int pasajeroId)
         {

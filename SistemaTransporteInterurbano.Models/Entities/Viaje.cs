@@ -22,7 +22,6 @@ namespace SistemaTransporteInterurbano.Models.Entities
 
         public EstadoViaje Estado { get; set; }
 
-        // Requerido por el requisito #30 — motivo al cancelar
         public string? MotivoCancelacion { get; set; }
 
         public List<Reserva> Reservas { get; set; } = new();
