@@ -218,8 +218,13 @@ namespace SistemaTransporteInterurbano.BL.Services
 
         public async Task CancelarReservaAsync(int reservaId)
         {
-            var reserva = await _context.Reservas.FindAsync(reservaId)
+            var reserva = await _context.Reservas
+                .Include(r => r.Viaje)
+                .FirstOrDefaultAsync(r => r.ReservaId == reservaId)
                 ?? throw new Exception("Reserva no encontrada.");
+
+            if (reserva.Viaje.Estado != EstadoViaje.EnCurso)
+                throw new Exception("Solo se pueden cancelar reservas de viajes en curso.");
 
             _context.Reservas.Remove(reserva);
             await _context.SaveChangesAsync();
