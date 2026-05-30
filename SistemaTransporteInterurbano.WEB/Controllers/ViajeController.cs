@@ -14,12 +14,14 @@ public class ViajeController : Controller
     private readonly IUnidadService _unidadService;
     private readonly IChoferService _choferService;
     private readonly INotificacionCorreoService _correoService;
+    private readonly IPasajeroService _pasajeroService;
 
     public ViajeController(
         IViajeService viajeService,
         IRutaService rutaService,
         IUnidadService unidadService,
         IChoferService choferService,
+        IPasajeroService pasajeroService,
         INotificacionCorreoService correoService)
     {
         _viajeService = viajeService;
@@ -27,6 +29,7 @@ public class ViajeController : Controller
         _unidadService = unidadService;
         _choferService = choferService;
         _correoService = correoService;
+        _pasajeroService = pasajeroService;
     }
 
     private IActionResult? VerificarAcceso()
@@ -233,7 +236,118 @@ public class ViajeController : Controller
 
         return View(viaje);
     }
+    [HttpGet]
+    public async Task<IActionResult> EnCurso()
+    {
+        var redireccion = VerificarAcceso();
+        if (redireccion != null) return redireccion;
 
+        var viajes = await _viajeService.ObtenerActivosAsync();
+        return View(viajes);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Reservar(int id)
+    {
+        var redireccion = VerificarAcceso();
+        if (redireccion != null) return redireccion;
+
+        var viaje = await _viajeService.ObtenerPorIdAsync(id);
+        if (viaje == null || viaje.Estado != EstadoViaje.EnCurso)
+            return RedirectToAction("EnCurso");
+
+        var pasajeros = await _pasajeroService.ObtenerTodosAsync();
+
+        ViewBag.Viaje = viaje;
+        ViewBag.Pasajeros = pasajeros.Select(p => new SelectListItem
+        {
+            Value = p.PasajeroId.ToString(),
+            Text = $"{p.Nombre} {p.Apellidos} - {p.Identificacion}"
+        }).ToList();
+
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Reservar(int viajeId, int pasajeroId, int numeroAsiento)
+    {
+        var redireccion = VerificarAcceso();
+        if (redireccion != null) return redireccion;
+
+        try
+        {
+            await _viajeService.ReservarAsientoAsync(viajeId, pasajeroId, numeroAsiento);
+            TempData["MensajeExito"] = "Reserva registrada correctamente.";
+            return RedirectToAction("Pasajeros", new { id = viajeId });
+        }
+        catch (Exception ex)
+        {
+            TempData["MensajeError"] = ex.Message;
+            return RedirectToAction("Reservar", new { id = viajeId });
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Pasajeros(int id)
+    {
+        var redireccion = VerificarAcceso();
+        if (redireccion != null) return redireccion;
+
+        var viaje = await _viajeService.ObtenerPorIdAsync(id);
+        if (viaje == null)
+            return RedirectToAction("EnCurso");
+
+        var reservas = await _viajeService.ObtenerPasajerosAsync(id);
+        var totales = await _viajeService.ObtenerTotalesAsync(id);
+
+        ViewBag.Viaje = viaje;
+        ViewBag.Pasajeros = totales.pasajeros;
+        ViewBag.Disponibles = totales.disponibles;
+        ViewBag.Total = totales.total;
+
+        return View(reservas);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CancelarReserva(int reservaId, int viajeId)
+    {
+        var redireccion = VerificarAcceso();
+        if (redireccion != null) return redireccion;
+
+        try
+        {
+            await _viajeService.CancelarReservaAsync(reservaId);
+            TempData["MensajeExito"] = "Reserva cancelada correctamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["MensajeError"] = ex.Message;
+        }
+
+        return RedirectToAction("Pasajeros", new { id = viajeId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Finalizar(int id)
+    {
+        var redireccion = VerificarAcceso();
+        if (redireccion != null) return redireccion;
+
+        try
+        {
+            await _viajeService.FinalizarViajeAsync(id);
+            TempData["MensajeExito"] = "Viaje finalizado correctamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["MensajeError"] = ex.Message;
+        }
+
+        return RedirectToAction("EnCurso");
+    }
     private async Task CargarCatalogosAsync()
     {
         var rutas = await _rutaService.ObtenerTodasAsync();
