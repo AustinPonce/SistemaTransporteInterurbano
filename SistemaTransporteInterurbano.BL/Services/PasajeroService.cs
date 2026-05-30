@@ -116,4 +116,10 @@ public class PasajeroService : IPasajeroService
 
         await _context.SaveChangesAsync();
     }
+    public async Task<Pasajero?> ObtenerPorUsuarioIdAsync(int usuarioId)
+    {
+        return await _context.Pasajeros
+            .Include(p => p.Usuario)
+            .FirstOrDefaultAsync(p => p.UsuarioId == usuarioId);
+    }
 }

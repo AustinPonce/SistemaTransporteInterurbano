@@ -8,4 +8,5 @@ public interface IPasajeroService
     Task AgregarAsync(string identificacion, string nombre, string apellidos, string correo);
     Task<Pasajero?> ObtenerPorIdAsync(int id);
     Task EditarAsync(int id, string identificacion, string nombre, string apellidos);
+    Task<Pasajero?> ObtenerPorUsuarioIdAsync(int usuarioId);
 }
