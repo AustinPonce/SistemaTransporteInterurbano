@@ -11,9 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="obj\Debug\net10.0\.NETCoreApp,Version=v10.0.AssemblyAttributes.cs" />
-    <Compile Include="obj\Debug\net10.0\SistemaTransporteInterurbano.BL.AssemblyInfo.cs" />
-    <Compile Include="obj\Debug\net10.0\SistemaTransporteInterurbano.BL.GlobalUsings.g.cs" />
+
   </ItemGroup>
 
   <ItemGroup>

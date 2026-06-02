@@ -93,7 +93,7 @@
                             <div class="input-group glass-input-group">
                                 <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
                                 <input asp-for="FechaSalida" type="datetime-local" class="form-control"
-                                       value="@Model.FechaSalida.ToString("yyyy-MM-ddTHH:mm")" />
+                                       value="@(Model.FechaSalida.HasValue ? Model.FechaSalida.Value.ToString("yyyy-MM-ddTHH:mm") : string.Empty)" />
                             </div>
                             <span asp-validation-for="FechaSalida" class="text-info small ms-2 d-block mt-1"></span>
                         </div>
@@ -103,7 +103,7 @@
                             <div class="input-group glass-input-group">
                                 <span class="input-group-text"><i class="bi bi-calendar-check"></i></span>
                                 <input asp-for="FechaLlegadaEstimada" type="datetime-local" class="form-control"
-                                       value="@Model.FechaLlegadaEstimada.ToString("yyyy-MM-ddTHH:mm")" />
+                                       value="@(Model.FechaLlegadaEstimada.HasValue ? Model.FechaLlegadaEstimada.Value.ToString("yyyy-MM-ddTHH:mm") : string.Empty)" />
                             </div>
                             <span asp-validation-for="FechaLlegadaEstimada" class="text-info small ms-2 d-block mt-1"></span>
                         </div>

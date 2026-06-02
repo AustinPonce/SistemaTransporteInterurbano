@@ -76,12 +76,24 @@ public class ViajeController : Controller
                 return View(vm);
             }
 
+            if (!vm.RutaId.HasValue || !vm.UnidadId.HasValue || !vm.ChoferId.HasValue || !vm.FechaSalida.HasValue || !vm.FechaLlegadaEstimada.HasValue)
+            {
+                if (!vm.RutaId.HasValue) ModelState.AddModelError(nameof(vm.RutaId), "La ruta es requerida.");
+                if (!vm.UnidadId.HasValue) ModelState.AddModelError(nameof(vm.UnidadId), "La unidad es requerida.");
+                if (!vm.ChoferId.HasValue) ModelState.AddModelError(nameof(vm.ChoferId), "El chofer es requerido.");
+                if (!vm.FechaSalida.HasValue) ModelState.AddModelError(nameof(vm.FechaSalida), "La fecha y hora de salida es requerida.");
+                if (!vm.FechaLlegadaEstimada.HasValue) ModelState.AddModelError(nameof(vm.FechaLlegadaEstimada), "La fecha y hora estimada de llegada es requerida.");
+
+                await CargarCatalogosAsync();
+                return View(vm);
+            }
+
             await _viajeService.AgregarAsync(
-                vm.RutaId,
-                vm.UnidadId,
-                vm.ChoferId,
-                vm.FechaSalida,
-                vm.FechaLlegadaEstimada);
+                vm.RutaId.Value,
+                vm.UnidadId.Value,
+                vm.ChoferId.Value,
+                vm.FechaSalida.Value,
+                vm.FechaLlegadaEstimada.Value);
 
             TempData["MensajeExito"] = "Viaje registrado correctamente.";
             return RedirectToAction("Index");
@@ -132,13 +144,25 @@ public class ViajeController : Controller
                 return View(vm);
             }
 
+            if (!vm.RutaId.HasValue || !vm.UnidadId.HasValue || !vm.ChoferId.HasValue || !vm.FechaSalida.HasValue || !vm.FechaLlegadaEstimada.HasValue)
+            {
+                if (!vm.RutaId.HasValue) ModelState.AddModelError(nameof(vm.RutaId), "La ruta es requerida.");
+                if (!vm.UnidadId.HasValue) ModelState.AddModelError(nameof(vm.UnidadId), "La unidad es requerida.");
+                if (!vm.ChoferId.HasValue) ModelState.AddModelError(nameof(vm.ChoferId), "El chofer es requerido.");
+                if (!vm.FechaSalida.HasValue) ModelState.AddModelError(nameof(vm.FechaSalida), "La fecha y hora de salida es requerida.");
+                if (!vm.FechaLlegadaEstimada.HasValue) ModelState.AddModelError(nameof(vm.FechaLlegadaEstimada), "La fecha y hora estimada de llegada es requerida.");
+
+                await CargarCatalogosAsync();
+                return View(vm);
+            }
+
             await _viajeService.EditarAsync(
                 vm.ViajeId,
-                vm.RutaId,
-                vm.UnidadId,
-                vm.ChoferId,
-                vm.FechaSalida,
-                vm.FechaLlegadaEstimada);
+                vm.RutaId.Value,
+                vm.UnidadId.Value,
+                vm.ChoferId.Value,
+                vm.FechaSalida.Value,
+                vm.FechaLlegadaEstimada.Value);
 
             TempData["MensajeExito"] = "Viaje actualizado correctamente.";
             return RedirectToAction("Index");
@@ -347,6 +371,32 @@ public class ViajeController : Controller
         }
 
         return RedirectToAction("EnCurso");
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ConfirmarFinalizar(int id)
+    {
+        var redireccion = VerificarAcceso();
+        if (redireccion != null) return redireccion;
+
+        var viaje = await _viajeService.ObtenerDetalleAsync(id);
+        if (viaje == null || viaje.Estado != EstadoViaje.EnCurso)
+            return RedirectToAction("EnCurso");
+
+        var totales = await _viajeService.ObtenerTotalesAsync(id);
+
+        var vm = new SistemaTransporteInterurbano.WEB.Models.ViewModels.FinalizarViajeViewModel
+        {
+            ViajeId = viaje.ViajeId,
+            RutaNombre = viaje.Ruta?.Nombre ?? "—",
+            PlacaUnidad = viaje.Unidad?.Placa ?? "—",
+            FechaSalida = viaje.FechaSalida,
+            Pasajeros = totales.pasajeros,
+            Disponibles = totales.disponibles,
+            TotalRecaudacion = totales.total
+        };
+
+        return View(vm);
     }
     private async Task CargarCatalogosAsync()
     {

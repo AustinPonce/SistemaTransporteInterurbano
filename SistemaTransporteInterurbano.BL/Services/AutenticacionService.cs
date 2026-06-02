@@ -3,6 +3,7 @@ using SistemaTransporteInterurbano.BL.Interfaces;
 using SistemaTransporteInterurbano.DA.Context;
 using SistemaTransporteInterurbano.Models.Entities;
 using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 
 namespace SistemaTransporteInterurbano.BL.Services;
 
@@ -16,6 +17,21 @@ public class AutenticacionService : IAutenticacionService
     {
         _context = context;
         _notificacionCorreoService = notificacionCorreoService;
+    }
+
+    private void ValidarClave(string clave)
+    {
+        if (string.IsNullOrEmpty(clave) || clave.Length < 8)
+            throw new Exception("La clave debe tener al menos 8 caracteres.");
+
+        // Al menos una mayúscula, una minúscula, un dígito y un carácter especial
+        var tieneMayus = Regex.IsMatch(clave, "[A-Z]");
+        var tieneMinus = Regex.IsMatch(clave, "[a-z]");
+        var tieneDigito = Regex.IsMatch(clave, "[0-9]");
+        var tieneEspecial = Regex.IsMatch(clave, "[^a-zA-Z0-9]");
+
+        if (!tieneMayus || !tieneMinus || !tieneDigito || !tieneEspecial)
+            throw new Exception("La clave debe contener al menos una mayúscula, una minúscula, un número y un carácter especial.");
     }
 
     public async Task IniciarRecuperacionPorCorreoAsync(string correo)
@@ -47,6 +63,7 @@ public class AutenticacionService : IAutenticacionService
         if (entry.Codigo != codigo || entry.Expiracion <= DateTime.Now)
             throw new Exception("Código inválido o expirado.");
 
+        ValidarClave(nuevaClave);
         usuario.Clave = BCrypt.Net.BCrypt.HashPassword(nuevaClave);
         usuario.DebeCambiarClave = false;
 
@@ -62,9 +79,9 @@ public class AutenticacionService : IAutenticacionService
         _inMemoryResets.TryRemove(correo, out _);
 
         await _notificacionCorreoService.EnviarCorreoAsync(
-            usuario.CorreoElectronico,
-            "Clave restablecida",
-            "Su contraseña ha sido restablecida correctamente.");
+    usuario.CorreoElectronico,
+    $"Cambio de clave — {usuario.NombreUsuario}",
+    $"La clave fue actualizada el día {DateTime.Now:dd/MM/yyyy} a las {DateTime.Now:HH:mm}.");
     }
 
     public async Task<Usuario?> AutenticarUsuarioPorNombreYClave(string nombreUsuario, string clave)
@@ -141,13 +158,14 @@ public class AutenticacionService : IAutenticacionService
         if (!claveActualCorrecta)
             throw new Exception("La clave actual es incorrecta.");
 
+        ValidarClave(nuevaClave);
         usuario.Clave = BCrypt.Net.BCrypt.HashPassword(nuevaClave);
         usuario.DebeCambiarClave = false;
         await _context.SaveChangesAsync();
 
-        await _notificacionCorreoService.EnviarCorreoAsync(
-            usuario.CorreoElectronico,
-            $"Cambio de clave — {usuario.NombreUsuario}",
-            $"La clave fue actualizada el día {DateTime.Now:dd/MM/yyyy} a las {DateTime.Now:HH:mm}.");
+     await _notificacionCorreoService.EnviarCorreoAsync(
+    usuario.CorreoElectronico,
+    $"Cambio de clave — {usuario.NombreUsuario}",
+    $"La clave fue actualizada el día {DateTime.Now:dd/MM/yyyy} a las {DateTime.Now:HH:mm}.");
     }
 }

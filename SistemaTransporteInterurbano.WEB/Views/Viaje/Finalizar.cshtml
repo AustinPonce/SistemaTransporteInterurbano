@@ -1,0 +1,71 @@
+@model SistemaTransporteInterurbano.WEB.Models.ViewModels.FinalizarViajeViewModel
+
+@{
+    ViewData["Title"] = "Finalizar Viaje";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Sistema de Transporte Interurbano</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/glass.css" />
+</head>
+<body>
+
+    <nav class="navbar glass-nav px-4 py-3">
+        <span class="navbar-brand text-white fw-bold fs-5">
+            <i class="bi bi-bus-front me-2 text-info"></i>Sistema de Transporte Interurbano
+        </span>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6">
+
+                <div class="glass-card p-4">
+                    <h4 class="text-white fw-bold mb-3">Resumen de recaudación</h4>
+
+                    <dl class="row text-white-50">
+                        <dt class="col-sm-6">Ruta</dt>
+                        <dd class="col-sm-6">@Model.RutaNombre</dd>
+
+                        <dt class="col-sm-6">Placa</dt>
+                        <dd class="col-sm-6">@Model.PlacaUnidad</dd>
+
+                        <dt class="col-sm-6">Fecha de salida</dt>
+                        <dd class="col-sm-6">@Model.FechaSalida.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                        <dt class="col-sm-6">Pasajeros</dt>
+                        <dd class="col-sm-6">@Model.Pasajeros</dd>
+
+                        <dt class="col-sm-6">Asientos disponibles</dt>
+                        <dd class="col-sm-6">@Model.Disponibles</dd>
+
+                        <dt class="col-sm-6">Total recaudado</dt>
+                        <dd class="col-sm-6">₡ @Model.TotalRecaudacion</dd>
+                    </dl>
+
+                    <form asp-action="Finalizar" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.ViajeId" />
+                        <div class="d-flex gap-2">
+                            <a asp-action="EnCurso" class="btn btn-outline-light flex-grow-1">Cancelar</a>
+                        <button type="submit" class="btn btn-gradient-save flex-grow-1">Finalizar Viaje</button>
+                        </div>
+                    </form>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
