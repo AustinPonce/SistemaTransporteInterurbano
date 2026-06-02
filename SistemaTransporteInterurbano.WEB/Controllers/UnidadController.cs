@@ -38,6 +38,34 @@ public class UnidadController : Controller
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
+        ViewBag.Modelos = new List<string>
+        {
+            "Mercedes-Benz O500",
+            "Mercedes-Benz O371",
+            "Marcopolo Paradiso",
+            "Scania K310",
+            "Volvo 9700",
+            "Toyota Coaster",
+            "Hino AK",
+            "Isuzu FRR",
+            "Volkswagen 15.210",
+            "Agrale MA 10.0",
+            "Mercedes-Benz Sprinter",
+            "Iveco Daily",
+            "Ford Transit",
+            "Chevrolet NKR",
+            "Dongfeng DFA"
+        };
+
+        ViewBag.UnidadesPredeterminadas = new List<Dictionary<string, string>>
+        {
+            new() { { "Placa", "ABC001" }, { "Modelo", "Mercedes-Benz O500" }, { "Anio", "2022" }, { "Capacidad", "45" } },
+            new() { { "Placa", "ABC002" }, { "Modelo", "Marcopolo Paradiso" }, { "Anio", "2023" }, { "Capacidad", "50" } },
+            new() { { "Placa", "ABC003" }, { "Modelo", "Toyota Coaster" }, { "Anio", "2021" }, { "Capacidad", "30" } },
+            new() { { "Placa", "ABC004" }, { "Modelo", "Scania K310" }, { "Anio", "2023" }, { "Capacidad", "55" } },
+            new() { { "Placa", "ABC005" }, { "Modelo", "Hino AK" }, { "Anio", "2020" }, { "Capacidad", "40" } }
+        };
+
         return View();
     }
 
@@ -73,6 +101,25 @@ public class UnidadController : Controller
     {
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
+
+        ViewBag.Modelos = new List<string>
+        {
+            "Mercedes-Benz O500",
+            "Mercedes-Benz O371",
+            "Marcopolo Paradiso",
+            "Scania K310",
+            "Volvo 9700",
+            "Toyota Coaster",
+            "Hino AK",
+            "Isuzu FRR",
+            "Volkswagen 15.210",
+            "Agrale MA 10.0",
+            "Mercedes-Benz Sprinter",
+            "Iveco Daily",
+            "Ford Transit",
+            "Chevrolet NKR",
+            "Dongfeng DFA"
+        };
 
         var unidad = await _unidadService.ObtenerPorIdAsync(id);
 

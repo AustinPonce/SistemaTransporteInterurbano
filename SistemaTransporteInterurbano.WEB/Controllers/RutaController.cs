@@ -39,6 +39,14 @@ public class RutaController : Controller
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
+        ViewBag.Destinos = new List<string>
+        {
+            "San José", "Alajuela", "Cartago", "Heredia", "Puntarenas",
+            "Liberia", "Limón", "Pérez Zeledón", "Turrialba", "Grecia",
+            "San Ramón", "Quesada", "Nicoya", "Santa Cruz", "Cañas",
+            "Ciudad Neily", "Golfito", "Guápiles", "Siquirres", "Parrita"
+        };
+
         return View();
     }
 
@@ -81,6 +89,14 @@ public class RutaController : Controller
     {
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
+
+        ViewBag.Destinos = new List<string>
+        {
+            "San José", "Alajuela", "Cartago", "Heredia", "Puntarenas",
+            "Liberia", "Limón", "Pérez Zeledón", "Turrialba", "Grecia",
+            "San Ramón", "Quesada", "Nicoya", "Santa Cruz", "Cañas",
+            "Ciudad Neily", "Golfito", "Guápiles", "Siquirres", "Parrita"
+        };
 
         var ruta = await _rutaService.ObtenerPorIdAsync(id);
 

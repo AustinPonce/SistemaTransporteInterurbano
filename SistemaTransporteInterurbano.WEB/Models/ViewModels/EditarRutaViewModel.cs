@@ -11,10 +11,12 @@ public class EditarRutaViewModel
     public string Nombre { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "El origen es requerido.")]
+    [RegularExpression(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$", ErrorMessage = "El origen no puede contener números.")]
     [Display(Name = "Origen")]
     public string Origen { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "El destino es requerido.")]
+    [RegularExpression(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$", ErrorMessage = "El destino no puede contener números.")]
     [Display(Name = "Destino")]
     public string Destino { get; set; } = string.Empty;
 
@@ -25,6 +27,6 @@ public class EditarRutaViewModel
 
     [Required(ErrorMessage = "El precio base es requerido.")]
     [Range(0.01, double.MaxValue, ErrorMessage = "El precio debe ser mayor a 0.")]
-    [Display(Name = "Precio base")]
+    [Display(Name = "Precio base (₡)")]
     public decimal PrecioBase { get; set; }
 }

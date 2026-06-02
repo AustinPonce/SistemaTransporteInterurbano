@@ -13,7 +13,7 @@ public class AgregarUnidadViewModel
     public string Modelo { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "El año de fabricación es requerido.")]
-    [Range(1900, 2100, ErrorMessage = "Ingrese un año válido.")]
+    [Range(0, 2100, ErrorMessage = "Ingrese un año válido (0-2100).")]
     [Display(Name = "Año de fabricación")]
     public int AnioFabricacion { get; set; }
 

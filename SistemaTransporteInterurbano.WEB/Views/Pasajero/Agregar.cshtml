@@ -54,7 +54,7 @@
                             <label asp-for="Identificacion" class="form-label small fw-semibold text-white-50 ms-1 mb-1"></label>
                             <div class="input-group glass-input-group">
                                 <span class="input-group-text"><i class="bi bi-card-text"></i></span>
-                                <input asp-for="Identificacion" class="form-control" placeholder="Número de cédula o identificación" />
+                                <input asp-for="Identificacion" class="form-control" placeholder="Número de cédula o identificación" maxlength="9" oninput="this.value=this.value.replace(/\D/g,'')" />
                             </div>
                             <span asp-validation-for="Identificacion" class="text-info small ms-2 d-block mt-1"></span>
                         </div>

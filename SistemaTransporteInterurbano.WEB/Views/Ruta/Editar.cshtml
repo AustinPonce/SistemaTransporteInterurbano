@@ -65,7 +65,9 @@
                             <label asp-for="Origen" class="form-label small fw-semibold text-white-50 ms-1 mb-1"></label>
                             <div class="input-group glass-input-group">
                                 <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-                                <input asp-for="Origen" class="form-control" placeholder="Ciudad de origen" />
+                                <select asp-for="Origen" class="form-select glass-input-group-select" asp-items="@(new SelectList(ViewBag.Destinos, ViewBag.Destinos))">
+                                    <option value="">Seleccione una ciudad de origen</option>
+                                </select>
                             </div>
                             <span asp-validation-for="Origen" class="text-info small ms-2 d-block mt-1"></span>
                         </div>
@@ -74,7 +76,9 @@
                             <label asp-for="Destino" class="form-label small fw-semibold text-white-50 ms-1 mb-1"></label>
                             <div class="input-group glass-input-group">
                                 <span class="input-group-text"><i class="bi bi-geo-fill"></i></span>
-                                <input asp-for="Destino" class="form-control" placeholder="Ciudad de destino" />
+                                <select asp-for="Destino" class="form-select glass-input-group-select" asp-items="@(new SelectList(ViewBag.Destinos, ViewBag.Destinos))">
+                                    <option value="">Seleccione una ciudad de destino</option>
+                                </select>
                             </div>
                             <span asp-validation-for="Destino" class="text-info small ms-2 d-block mt-1"></span>
                         </div>
@@ -91,7 +95,7 @@
                         <div class="mb-4">
                             <label asp-for="PrecioBase" class="form-label small fw-semibold text-white-50 ms-1 mb-1"></label>
                             <div class="input-group glass-input-group">
-                                <span class="input-group-text"><i class="bi bi-currency-dollar"></i></span>
+                                <span class="input-group-text">₡</span>
                                 <input asp-for="PrecioBase" type="number" step="0.01" min="0.01" class="form-control" placeholder="0.00" />
                             </div>
                             <span asp-validation-for="PrecioBase" class="text-info small ms-2 d-block mt-1"></span>

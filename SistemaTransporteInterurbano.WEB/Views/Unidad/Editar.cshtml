@@ -65,7 +65,9 @@
                             <label asp-for="Modelo" class="form-label small fw-semibold text-white-50 ms-1 mb-1"></label>
                             <div class="input-group glass-input-group">
                                 <span class="input-group-text"><i class="bi bi-bus-front"></i></span>
-                                <input asp-for="Modelo" class="form-control" placeholder="Ej: Mercedes Benz O500" />
+                                <select asp-for="Modelo" class="form-select glass-input-group-select" asp-items="@(new SelectList(ViewBag.Modelos, ViewBag.Modelos))">
+                                    <option value="">Seleccione un modelo</option>
+                                </select>
                             </div>
                             <span asp-validation-for="Modelo" class="text-info small ms-2 d-block mt-1"></span>
                         </div>
@@ -74,7 +76,7 @@
                             <label asp-for="AnioFabricacion" class="form-label small fw-semibold text-white-50 ms-1 mb-1"></label>
                             <div class="input-group glass-input-group">
                                 <span class="input-group-text"><i class="bi bi-calendar"></i></span>
-                                <input asp-for="AnioFabricacion" type="number" class="form-control" placeholder="Ej: 2020" />
+                                <input asp-for="AnioFabricacion" type="number" min="0" class="form-control" placeholder="Ej: 2020" />
                             </div>
                             <span asp-validation-for="AnioFabricacion" class="text-info small ms-2 d-block mt-1"></span>
                         </div>
@@ -83,7 +85,7 @@
                             <label asp-for="CapacidadPasajeros" class="form-label small fw-semibold text-white-50 ms-1 mb-1"></label>
                             <div class="input-group glass-input-group">
                                 <span class="input-group-text"><i class="bi bi-people"></i></span>
-                                <input asp-for="CapacidadPasajeros" type="number" class="form-control" placeholder="Ej: 45" />
+                                <input asp-for="CapacidadPasajeros" type="number" min="1" class="form-control" placeholder="Ej: 45" />
                             </div>
                             <span asp-validation-for="CapacidadPasajeros" class="text-info small ms-2 d-block mt-1"></span>
                         </div>

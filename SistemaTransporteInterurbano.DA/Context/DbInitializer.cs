@@ -1,3 +1,4 @@
+using BCrypt.Net;
 using System.Linq;
 using System.Threading.Tasks;
 using SistemaTransporteInterurbano.Models.Entities;
@@ -18,5 +19,31 @@ public static class DbInitializer
 
             await context.SaveChangesAsync();
         }
+
+        var admin = context.Usuarios.FirstOrDefault(u => u.NombreUsuario == "admin");
+        if (admin == null)
+        {
+            admin = new Usuario
+            {
+                NombreUsuario = "admin",
+                Clave = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+                CorreoElectronico = "admin@sistema.com",
+                RolId = 1,
+                IntentosFallidos = 0,
+                EstaBloqueado = false,
+                FechaCreacion = DateTime.Now,
+                DebeCambiarClave = false
+            };
+
+            context.Usuarios.Add(admin);
+        }
+        else
+        {
+            admin.Clave = BCrypt.Net.BCrypt.HashPassword("Admin123!");
+            admin.IntentosFallidos = 0;
+            admin.EstaBloqueado = false;
+        }
+
+        await context.SaveChangesAsync();
     }
 }
