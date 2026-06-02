@@ -6,7 +6,9 @@ namespace SistemaTransporteInterurbano.WEB.Controllers;
 public class HomeController : Controller
 {
     public IActionResult Index()
+
     {
+       
         var rol = HttpContext.Session.GetString("Rol");
 
         if (rol == Roles.Administrador)
@@ -14,6 +16,9 @@ public class HomeController : Controller
 
         if (rol == Roles.Chofer)
             return View("IndexChofer");
+
+        if (rol == Roles.Pasajero)
+            return View("IndexPasajero");
 
         return RedirectToAction("IniciarSesion", "Autenticacion");
     }

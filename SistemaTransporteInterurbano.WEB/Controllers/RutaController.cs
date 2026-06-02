@@ -17,9 +17,22 @@ public class RutaController : Controller
     private IActionResult? VerificarAcceso()
     {
         var rol = HttpContext.Session.GetString("Rol");
+
         if (rol != Roles.Administrador && rol != Roles.Chofer)
             return RedirectToAction("IniciarSesion", "Autenticacion");
+
         return null;
+    }
+
+    private void CargarDestinos()
+    {
+        ViewBag.Destinos = new List<string>
+        {
+            "San José", "Alajuela", "Cartago", "Heredia", "Puntarenas",
+            "Liberia", "Limón", "Pérez Zeledón", "Turrialba", "Grecia",
+            "San Ramón", "Quesada", "Nicoya", "Santa Cruz", "Cañas",
+            "Ciudad Neily", "Golfito", "Guápiles", "Siquirres", "Parrita"
+        };
     }
 
     [HttpGet]
@@ -29,7 +42,9 @@ public class RutaController : Controller
         if (redireccion != null) return redireccion;
 
         var rutas = await _rutaService.ObtenerTodasAsync(filtro);
+
         ViewBag.Filtro = filtro;
+
         return View(rutas);
     }
 
@@ -39,13 +54,7 @@ public class RutaController : Controller
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
-        ViewBag.Destinos = new List<string>
-        {
-            "San José", "Alajuela", "Cartago", "Heredia", "Puntarenas",
-            "Liberia", "Limón", "Pérez Zeledón", "Turrialba", "Grecia",
-            "San Ramón", "Quesada", "Nicoya", "Santa Cruz", "Cañas",
-            "Ciudad Neily", "Golfito", "Guápiles", "Siquirres", "Parrita"
-        };
+        CargarDestinos();
 
         return View();
     }
@@ -59,11 +68,15 @@ public class RutaController : Controller
         try
         {
             if (!ModelState.IsValid)
+            {
+                CargarDestinos();
                 return View(vm);
+            }
 
             if (!TimeSpan.TryParseExact(vm.DuracionEstimada, @"hh\:mm", null, out var duracion))
             {
                 ViewBag.MensajeError = "El formato de duración es inválido. Use hh:mm.";
+                CargarDestinos();
                 return View(vm);
             }
 
@@ -80,6 +93,7 @@ public class RutaController : Controller
         catch (Exception ex)
         {
             ViewBag.MensajeError = ex.Message;
+            CargarDestinos();
             return View(vm);
         }
     }
@@ -90,18 +104,12 @@ public class RutaController : Controller
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
-        ViewBag.Destinos = new List<string>
-        {
-            "San José", "Alajuela", "Cartago", "Heredia", "Puntarenas",
-            "Liberia", "Limón", "Pérez Zeledón", "Turrialba", "Grecia",
-            "San Ramón", "Quesada", "Nicoya", "Santa Cruz", "Cañas",
-            "Ciudad Neily", "Golfito", "Guápiles", "Siquirres", "Parrita"
-        };
-
         var ruta = await _rutaService.ObtenerPorIdAsync(id);
 
         if (ruta == null)
             return RedirectToAction("Index");
+
+        CargarDestinos();
 
         var vm = new EditarRutaViewModel
         {
@@ -125,11 +133,15 @@ public class RutaController : Controller
         try
         {
             if (!ModelState.IsValid)
+            {
+                CargarDestinos();
                 return View(vm);
+            }
 
             if (!TimeSpan.TryParseExact(vm.DuracionEstimada, @"hh\:mm", null, out var duracion))
             {
                 ViewBag.MensajeError = "El formato de duración es inválido. Use hh:mm.";
+                CargarDestinos();
                 return View(vm);
             }
 
@@ -147,6 +159,7 @@ public class RutaController : Controller
         catch (Exception ex)
         {
             ViewBag.MensajeError = ex.Message;
+            CargarDestinos();
             return View(vm);
         }
     }

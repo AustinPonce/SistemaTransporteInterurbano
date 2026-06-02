@@ -9,10 +9,10 @@ namespace SistemaTransporteInterurbano.Models.Entities
         public int ReservaId { get; set; }
 
         public int ViajeId { get; set; }
-        public Viaje Viaje { get; set; }
+        public Viaje Viaje { get; set; } = null!;
 
         public int PasajeroId { get; set; }
-        public Pasajero Pasajero { get; set; }
+        public Pasajero Pasajero { get; set; } = null!;
 
         public int NumeroAsiento { get; set; }
 
