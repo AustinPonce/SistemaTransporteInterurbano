@@ -282,12 +282,19 @@ public class ViajeController : Controller
 
         var pasajeros = await _pasajeroService.ObtenerTodosAsync();
 
+        var asientosOcupados = viaje.Reservas
+            .Select(r => r.NumeroAsiento)
+            .ToList();
+
         ViewBag.Viaje = viaje;
         ViewBag.Pasajeros = pasajeros.Select(p => new SelectListItem
         {
             Value = p.PasajeroId.ToString(),
             Text = $"{p.Nombre} {p.Apellidos} - {p.Identificacion}"
         }).ToList();
+
+        ViewBag.Capacidad = viaje.Unidad.CapacidadPasajeros;
+        ViewBag.AsientosOcupados = asientosOcupados;
 
         return View();
     }
