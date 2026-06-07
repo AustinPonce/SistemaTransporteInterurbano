@@ -6,8 +6,6 @@
 
     var viaje = ViewBag.Viaje as SistemaTransporteInterurbano.Models.Entities.Viaje;
     var pasajeros = ViewBag.Pasajeros as List<SelectListItem>;
-    int capacidad = ViewBag.Capacidad ?? 0;
-    var ocupados = ViewBag.AsientosOcupados as List<int> ?? new List<int>();
 }
 
 <!DOCTYPE html>
@@ -60,28 +58,30 @@
                 </h5>
 
                 <div class="text-white-50">
-                    Salida: @viaje?.FechaSalida.ToString("dd/MM/yyyy HH:mm")
+                    Salida:
+                    @viaje?.FechaSalida.ToString("dd/MM/yyyy HH:mm")
                 </div>
 
                 <div class="text-white-50">
-                    Unidad: @viaje?.Unidad?.Placa
-                </div>
-
-                <div class="text-white-50">
-                    Capacidad: @capacidad asientos
+                    Unidad:
+                    @viaje?.Unidad?.Placa
                 </div>
             </div>
 
-            <form asp-action="Reservar" method="post" id="formReserva">
+            <form asp-action="Reservar" method="post">
+
                 @Html.AntiForgeryToken()
 
                 <input type="hidden" name="viajeId" value="@viaje?.ViajeId" />
-                <input type="hidden" name="numeroAsiento" id="numeroAsiento" required />
 
-                <div class="mb-4">
-                    <label class="form-label text-white">Pasajero</label>
+                <div class="mb-3">
+                    <label class="form-label text-white">
+                        Pasajero
+                    </label>
 
-                    <select name="pasajeroId" class="form-select" required>
+                    <select name="pasajeroId"
+                            class="form-select"
+                            required>
                         <option value="">Seleccione...</option>
 
                         @foreach (var pasajero in pasajeros ?? new())
@@ -94,40 +94,23 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label text-white">Seleccione un asiento</label>
+                    <label class="form-label text-white">
+                        Número de asiento
+                    </label>
 
-                    <div class="mb-3">
-                        <span class="badge bg-success me-2">Disponible</span>
-                        <span class="badge bg-danger me-2">Reservado</span>
-                        <span class="badge bg-warning text-dark">Seleccionado</span>
-                    </div>
-
-                    <div class="row g-2 mb-4">
-                        @for (int i = 1; i <= capacidad; i++)
-                        {
-                            bool reservado = ocupados.Contains(i);
-
-                            <div class="col-2 col-sm-1">
-                                <button type="button"
-                                        class="btn w-100 @(reservado ? "btn-danger" : "btn-success asiento-disponible")"
-                                        data-asiento="@i"
-                                    @(reservado ? "disabled" : "")>
-                                    @i
-                                </button>
-                            </div>
-                        }
-                    </div>
-
-                    <div class="text-white-50">
-                        Asiento seleccionado:
-                        <span id="asientoSeleccionado" class="text-white fw-bold">Ninguno</span>
-                    </div>
+                    <input type="number"
+                           name="numeroAsiento"
+                           min="1"
+                           class="form-control"
+                           required />
                 </div>
 
-                <button type="submit" class="btn btn-gradient-add">
+                <button type="submit"
+                        class="btn btn-gradient-add">
                     <i class="bi bi-check-circle me-1"></i>
                     Registrar Reserva
                 </button>
+
             </form>
 
         </div>
@@ -136,34 +119,5 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        document.querySelectorAll('.asiento-disponible').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-        const asiento = this.dataset.asiento;
-
-        document.getElementById('numeroAsiento').value = asiento;
-        document.getElementById('asientoSeleccionado').innerText = asiento;
-
-        document.querySelectorAll('.asiento-disponible').forEach(function (b) {
-        b.classList.remove('btn-warning');
-        b.classList.add('btn-success');
-        });
-
-        this.classList.remove('btn-success');
-        this.classList.add('btn-warning');
-        });
-        });
-
-        document.getElementById('formReserva').addEventListener('submit', function (event) {
-        const asiento = document.getElementById('numeroAsiento').value;
-
-        if (!asiento) {
-        event.preventDefault();
-        alert('Debe seleccionar un asiento antes de registrar la reserva.');
-        }
-        });
-    </script>
-
 </body>
 </html>
