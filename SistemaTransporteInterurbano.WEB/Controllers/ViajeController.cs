@@ -271,26 +271,33 @@ public class ViajeController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Reservar(int id)
+public async Task<IActionResult> Reservar(int id)
+{
+    var redireccion = VerificarAcceso();
+    if (redireccion != null) return redireccion;
+
+    var viaje = await _viajeService.ObtenerPorIdAsync(id);
+    if (viaje == null || viaje.Estado != EstadoViaje.EnCurso)
+        return RedirectToAction("EnCurso");
+
+    var pasajeros = await _pasajeroService.ObtenerTodosAsync();
+
+    var asientosOcupados = viaje.Reservas
+        .Select(r => r.NumeroAsiento)
+        .ToList();
+
+    ViewBag.Viaje = viaje;
+    ViewBag.Pasajeros = pasajeros.Select(p => new SelectListItem
     {
-        var redireccion = VerificarAcceso();
-        if (redireccion != null) return redireccion;
+        Value = p.PasajeroId.ToString(),
+        Text = $"{p.Nombre} {p.Apellidos} - {p.Identificacion}"
+    }).ToList();
 
-        var viaje = await _viajeService.ObtenerPorIdAsync(id);
-        if (viaje == null || viaje.Estado != EstadoViaje.EnCurso)
-            return RedirectToAction("EnCurso");
+    ViewBag.Capacidad = viaje.Unidad.CapacidadPasajeros;
+    ViewBag.AsientosOcupados = asientosOcupados;
 
-        var pasajeros = await _pasajeroService.ObtenerTodosAsync();
-
-        ViewBag.Viaje = viaje;
-        ViewBag.Pasajeros = pasajeros.Select(p => new SelectListItem
-        {
-            Value = p.PasajeroId.ToString(),
-            Text = $"{p.Nombre} {p.Apellidos} - {p.Identificacion}"
-        }).ToList();
-
-        return View();
-    }
+    return View();
+}
 
     [HttpPost]
     [ValidateAntiForgeryToken]
