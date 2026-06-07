@@ -80,12 +80,19 @@ public class RutaController : Controller
                 return View(vm);
             }
 
+            if (!vm.PrecioBase.HasValue)
+            {
+                ViewBag.MensajeError = "El precio base es requerido.";
+                CargarDestinos();
+                return View(vm);
+            }
+
             await _rutaService.AgregarAsync(
                 vm.Nombre,
                 vm.Origen,
                 vm.Destino,
                 duracion,
-                vm.PrecioBase);
+                vm.PrecioBase.Value);
 
             TempData["MensajeExito"] = "Ruta registrada correctamente.";
             return RedirectToAction("Index");
@@ -145,13 +152,20 @@ public class RutaController : Controller
                 return View(vm);
             }
 
+            if (!vm.PrecioBase.HasValue)
+            {
+                ViewBag.MensajeError = "El precio base es requerido.";
+                CargarDestinos();
+                return View(vm);
+            }
+
             await _rutaService.EditarAsync(
                 vm.RutaId,
                 vm.Nombre,
                 vm.Origen,
                 vm.Destino,
                 duracion,
-                vm.PrecioBase);
+                vm.PrecioBase.Value);
 
             TempData["MensajeExito"] = "Ruta actualizada correctamente.";
             return RedirectToAction("Index");

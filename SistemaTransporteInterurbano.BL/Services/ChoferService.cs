@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using SistemaTransporteInterurbano.BL.Helpers;
 using SistemaTransporteInterurbano.BL.Interfaces;
 using SistemaTransporteInterurbano.DA.Context;
@@ -113,6 +115,27 @@ public class ChoferService : IChoferService
         chofer.Identificacion = identificacion;
         chofer.Nombre = nombre;
         chofer.Apellidos = apellidos;
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task EliminarAsync(int id)
+    {
+        var chofer = await _context.Choferes.FirstOrDefaultAsync(c => c.ChoferId == id);
+
+        if (chofer == null)
+            throw new Exception("Chofer no encontrado.");
+
+        var tieneViajes = await _context.Viajes.AnyAsync(v => v.ChoferId == id);
+        if (tieneViajes)
+            throw new Exception("No se puede eliminar un chofer que tenga viajes registrados en el sistema.");
+
+        // También eliminar usuario asociado
+        var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.UsuarioId == chofer.UsuarioId);
+
+        _context.Choferes.Remove(chofer);
+        if (usuario != null)
+            _context.Usuarios.Remove(usuario);
 
         await _context.SaveChangesAsync();
     }

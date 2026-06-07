@@ -7,8 +7,8 @@ public class EditarChoferViewModel
     public int ChoferId { get; set; }
 
     [Required(ErrorMessage = "La identificación es requerida.")]
-    [StringLength(9, ErrorMessage = "La identificación no puede tener más de 9 dígitos.")]
-    [RegularExpression(@"^\d{1,9}$", ErrorMessage = "La identificación debe contener solo números.")]
+    [StringLength(50, MinimumLength = 9, ErrorMessage = "La identificación debe tener al menos 9 dígitos.")]
+    [RegularExpression(@"^\d{9,}$", ErrorMessage = "La identificación debe contener solo números y al menos 9 dígitos.")]
     [Display(Name = "Identificación")]
     public string Identificacion { get; set; } = string.Empty;
 

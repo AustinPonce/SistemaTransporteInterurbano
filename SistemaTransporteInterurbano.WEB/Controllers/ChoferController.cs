@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using SistemaTransporteInterurbano.BL.Interfaces;
 using SistemaTransporteInterurbano.WEB.Models.ViewModels;
 using SistemaTransporteInterurbano.Models;
@@ -67,6 +69,33 @@ public class ChoferController : Controller
             ViewBag.MensajeError = ex.Message;
             return View(vm);
         }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Eliminar(int id)
+    {
+        var redireccion = VerificarAdministrador();
+        if (redireccion != null) return redireccion;
+
+        try
+        {
+            if (_choferService is SistemaTransporteInterurbano.BL.Services.ChoferService servicioConcreto)
+            {
+                await servicioConcreto.EliminarAsync(id);
+            }
+            else
+            {
+                throw new Exception("Operación de eliminación no disponible.");
+            }
+            TempData["MensajeExito"] = "Chofer eliminado correctamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["MensajeError"] = ex.Message;
+        }
+
+        return RedirectToAction("Index");
     }
 
     [HttpGet]

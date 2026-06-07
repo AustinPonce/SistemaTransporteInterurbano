@@ -63,8 +63,15 @@
                             <label asp-for="Modelo" class="form-label small fw-semibold text-white-50 ms-1 mb-1"></label>
                             <div class="input-group glass-input-group">
                                 <span class="input-group-text"><i class="bi bi-bus-front"></i></span>
-                                <select asp-for="Modelo" class="form-select glass-input-group-select" asp-items="@(new SelectList(ViewBag.Modelos, ViewBag.Modelos))">
+                                <select asp-for="Modelo" class="form-select glass-input-group-select">
                                     <option value="">Seleccione un modelo</option>
+                                    @{
+                                        var modelos = ViewBag.Modelos as List<string> ?? new List<string>();
+                                        foreach (var m in modelos)
+                                        {
+                                            <option value="@m">@m</option>
+                                        }
+                                    }
                                 </select>
                             </div>
                             <span asp-validation-for="Modelo" class="text-info small ms-2 d-block mt-1"></span>

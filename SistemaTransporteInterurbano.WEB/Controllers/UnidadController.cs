@@ -78,13 +78,46 @@ public class UnidadController : Controller
         try
         {
             if (!ModelState.IsValid)
+            {
+                ViewBag.Modelos = new List<string>
+                {
+                    "Mercedes-Benz O500",
+                    "Mercedes-Benz O371",
+                    "Marcopolo Paradiso",
+                    "Scania K310",
+                    "Volvo 9700",
+                    "Toyota Coaster",
+                    "Hino AK",
+                    "Isuzu FRR",
+                    "Volkswagen 15.210",
+                    "Agrale MA 10.0",
+                    "Mercedes-Benz Sprinter",
+                    "Iveco Daily",
+                    "Ford Transit",
+                    "Chevrolet NKR",
+                    "Dongfeng DFA"
+                };
+
                 return View(vm);
+            }
+
+            if (!vm.AnioFabricacion.HasValue)
+            {
+                ModelState.AddModelError(nameof(vm.AnioFabricacion), "El año de fabricación es requerido.");
+                return View(vm);
+            }
+
+            if (!vm.CapacidadPasajeros.HasValue)
+            {
+                ModelState.AddModelError(nameof(vm.CapacidadPasajeros), "La capacidad es requerida.");
+                return View(vm);
+            }
 
             await _unidadService.AgregarAsync(
                 vm.Placa,
                 vm.Modelo,
-                vm.AnioFabricacion,
-                vm.CapacidadPasajeros);
+                vm.AnioFabricacion.Value,
+                vm.CapacidadPasajeros.Value);
 
             TempData["MensajeExito"] = "Unidad registrada correctamente.";
             return RedirectToAction("Index");
@@ -147,14 +180,47 @@ public class UnidadController : Controller
         try
         {
             if (!ModelState.IsValid)
+            {
+                ViewBag.Modelos = new List<string>
+                {
+                    "Mercedes-Benz O500",
+                    "Mercedes-Benz O371",
+                    "Marcopolo Paradiso",
+                    "Scania K310",
+                    "Volvo 9700",
+                    "Toyota Coaster",
+                    "Hino AK",
+                    "Isuzu FRR",
+                    "Volkswagen 15.210",
+                    "Agrale MA 10.0",
+                    "Mercedes-Benz Sprinter",
+                    "Iveco Daily",
+                    "Ford Transit",
+                    "Chevrolet NKR",
+                    "Dongfeng DFA"
+                };
+
                 return View(vm);
+            }
+
+            if (!vm.AnioFabricacion.HasValue)
+            {
+                ModelState.AddModelError(nameof(vm.AnioFabricacion), "El año de fabricación es requerido.");
+                return View(vm);
+            }
+
+            if (!vm.CapacidadPasajeros.HasValue)
+            {
+                ModelState.AddModelError(nameof(vm.CapacidadPasajeros), "La capacidad es requerida.");
+                return View(vm);
+            }
 
             await _unidadService.EditarAsync(
                 vm.UnidadId,
                 vm.Placa,
                 vm.Modelo,
-                vm.AnioFabricacion,
-                vm.CapacidadPasajeros);
+                vm.AnioFabricacion.Value,
+                vm.CapacidadPasajeros.Value);
 
             TempData["MensajeExito"] = "Unidad actualizada correctamente.";
             return RedirectToAction("Index");
