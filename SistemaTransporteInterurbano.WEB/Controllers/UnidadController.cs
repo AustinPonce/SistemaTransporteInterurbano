@@ -1,17 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SistemaTransporteInterurbano.BL.Interfaces;
 using SistemaTransporteInterurbano.Models;
 using SistemaTransporteInterurbano.WEB.Models.ViewModels;
+using SistemaTransporteInterurbano.WEB.Services;
 
 namespace SistemaTransporteInterurbano.WEB.Controllers;
 
 public class UnidadController : Controller
 {
-    private readonly IUnidadService _unidadService;
+    private readonly ApiClientService _api;
 
-    public UnidadController(IUnidadService unidadService)
+    public UnidadController(ApiClientService api)
     {
-        _unidadService = unidadService;
+        _api = api;
     }
 
     private IActionResult? VerificarAcceso()
@@ -28,7 +28,7 @@ public class UnidadController : Controller
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
-        var unidades = await _unidadService.ObtenerTodasAsync();
+        var unidades = await _api.ObtenerUnidadesAsync();
         return View(unidades);
     }
 
@@ -78,46 +78,9 @@ public class UnidadController : Controller
         try
         {
             if (!ModelState.IsValid)
-            {
-                ViewBag.Modelos = new List<string>
-                {
-                    "Mercedes-Benz O500",
-                    "Mercedes-Benz O371",
-                    "Marcopolo Paradiso",
-                    "Scania K310",
-                    "Volvo 9700",
-                    "Toyota Coaster",
-                    "Hino AK",
-                    "Isuzu FRR",
-                    "Volkswagen 15.210",
-                    "Agrale MA 10.0",
-                    "Mercedes-Benz Sprinter",
-                    "Iveco Daily",
-                    "Ford Transit",
-                    "Chevrolet NKR",
-                    "Dongfeng DFA"
-                };
-
                 return View(vm);
-            }
 
-            if (!vm.AnioFabricacion.HasValue)
-            {
-                ModelState.AddModelError(nameof(vm.AnioFabricacion), "El año de fabricación es requerido.");
-                return View(vm);
-            }
-
-            if (!vm.CapacidadPasajeros.HasValue)
-            {
-                ModelState.AddModelError(nameof(vm.CapacidadPasajeros), "La capacidad es requerida.");
-                return View(vm);
-            }
-
-            await _unidadService.AgregarAsync(
-                vm.Placa,
-                vm.Modelo,
-                vm.AnioFabricacion.Value,
-                vm.CapacidadPasajeros.Value);
+            await _api.AgregarUnidadAsync(vm.Placa, vm.Modelo, vm.AnioFabricacion, vm.CapacidadPasajeros);
 
             TempData["MensajeExito"] = "Unidad registrada correctamente.";
             return RedirectToAction("Index");
@@ -154,7 +117,7 @@ public class UnidadController : Controller
             "Dongfeng DFA"
         };
 
-        var unidad = await _unidadService.ObtenerPorIdAsync(id);
+        var unidad = await _api.ObtenerUnidadPorIdAsync(id);
 
         if (unidad == null)
             return RedirectToAction("Index");
@@ -180,47 +143,9 @@ public class UnidadController : Controller
         try
         {
             if (!ModelState.IsValid)
-            {
-                ViewBag.Modelos = new List<string>
-                {
-                    "Mercedes-Benz O500",
-                    "Mercedes-Benz O371",
-                    "Marcopolo Paradiso",
-                    "Scania K310",
-                    "Volvo 9700",
-                    "Toyota Coaster",
-                    "Hino AK",
-                    "Isuzu FRR",
-                    "Volkswagen 15.210",
-                    "Agrale MA 10.0",
-                    "Mercedes-Benz Sprinter",
-                    "Iveco Daily",
-                    "Ford Transit",
-                    "Chevrolet NKR",
-                    "Dongfeng DFA"
-                };
-
                 return View(vm);
-            }
 
-            if (!vm.AnioFabricacion.HasValue)
-            {
-                ModelState.AddModelError(nameof(vm.AnioFabricacion), "El año de fabricación es requerido.");
-                return View(vm);
-            }
-
-            if (!vm.CapacidadPasajeros.HasValue)
-            {
-                ModelState.AddModelError(nameof(vm.CapacidadPasajeros), "La capacidad es requerida.");
-                return View(vm);
-            }
-
-            await _unidadService.EditarAsync(
-                vm.UnidadId,
-                vm.Placa,
-                vm.Modelo,
-                vm.AnioFabricacion.Value,
-                vm.CapacidadPasajeros.Value);
+            await _api.EditarUnidadAsync(vm.UnidadId, vm.Placa, vm.Modelo, vm.AnioFabricacion, vm.CapacidadPasajeros);
 
             TempData["MensajeExito"] = "Unidad actualizada correctamente.";
             return RedirectToAction("Index");

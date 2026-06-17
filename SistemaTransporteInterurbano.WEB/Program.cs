@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using SistemaTransporteInterurbano.BL.Interfaces;
 using SistemaTransporteInterurbano.BL.Services;
 using SistemaTransporteInterurbano.DA.Context;
+using SistemaTransporteInterurbano.WEB.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,13 +20,17 @@ builder.Services.AddScoped<IRutaService, RutaService>();
 builder.Services.AddScoped<IUnidadService, UnidadService>();
 builder.Services.AddScoped<IViajeService, ViajeService>();
 
-
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient<ApiClientService>();
+
+builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
@@ -35,7 +40,7 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<AppDbContext>();
-        SistemaTransporteInterurbano.DA.Context.DbInitializer.InitializeAsync(context).Wait();
+        DbInitializer.InitializeAsync(context).Wait();
     }
     catch { }
 }

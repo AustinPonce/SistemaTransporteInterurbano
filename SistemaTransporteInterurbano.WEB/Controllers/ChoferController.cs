@@ -1,19 +1,17 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using SistemaTransporteInterurbano.BL.Interfaces;
-using SistemaTransporteInterurbano.WEB.Models.ViewModels;
+﻿using Microsoft.AspNetCore.Mvc;
 using SistemaTransporteInterurbano.Models;
+using SistemaTransporteInterurbano.WEB.Models.ViewModels;
+using SistemaTransporteInterurbano.WEB.Services;
 
 namespace SistemaTransporteInterurbano.WEB.Controllers;
 
 public class ChoferController : Controller
 {
-    private readonly IChoferService _choferService;
+    private readonly ApiClientService _api;
 
-    public ChoferController(IChoferService choferService)
+    public ChoferController(ApiClientService api)
     {
-        _choferService = choferService;
+        _api = api;
     }
 
     private IActionResult? VerificarAdministrador()
@@ -30,7 +28,7 @@ public class ChoferController : Controller
         var redireccion = VerificarAdministrador();
         if (redireccion != null) return redireccion;
 
-        var choferes = await _choferService.ObtenerTodosAsync(filtroNombre);
+        var choferes = await _api.ObtenerChoferesAsync(filtroNombre);
         ViewBag.FiltroNombre = filtroNombre;
         return View(choferes);
     }
@@ -55,11 +53,7 @@ public class ChoferController : Controller
             if (!ModelState.IsValid)
                 return View(vm);
 
-            await _choferService.AgregarAsync(
-                vm.Identificacion,
-                vm.Nombre,
-                vm.Apellidos,
-                vm.CorreoElectronico);
+            await _api.AgregarChoferAsync(vm.Identificacion, vm.Nombre, vm.Apellidos, vm.CorreoElectronico);
 
             TempData["MensajeExito"] = "Chofer registrado correctamente. Se envió la clave al correo.";
             return RedirectToAction("Index");
@@ -71,40 +65,13 @@ public class ChoferController : Controller
         }
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Eliminar(int id)
-    {
-        var redireccion = VerificarAdministrador();
-        if (redireccion != null) return redireccion;
-
-        try
-        {
-            if (_choferService is SistemaTransporteInterurbano.BL.Services.ChoferService servicioConcreto)
-            {
-                await servicioConcreto.EliminarAsync(id);
-            }
-            else
-            {
-                throw new Exception("Operación de eliminación no disponible.");
-            }
-            TempData["MensajeExito"] = "Chofer eliminado correctamente.";
-        }
-        catch (Exception ex)
-        {
-            TempData["MensajeError"] = ex.Message;
-        }
-
-        return RedirectToAction("Index");
-    }
-
     [HttpGet]
     public async Task<IActionResult> Editar(int id)
     {
         var redireccion = VerificarAdministrador();
         if (redireccion != null) return redireccion;
 
-        var chofer = await _choferService.ObtenerPorIdAsync(id);
+        var chofer = await _api.ObtenerChoferPorIdAsync(id);
 
         if (chofer == null)
             return RedirectToAction("Index");
@@ -131,11 +98,7 @@ public class ChoferController : Controller
             if (!ModelState.IsValid)
                 return View(vm);
 
-            await _choferService.EditarAsync(
-                vm.ChoferId,
-                vm.Identificacion,
-                vm.Nombre,
-                vm.Apellidos);
+            await _api.EditarChoferAsync(vm.ChoferId, vm.Identificacion, vm.Nombre, vm.Apellidos);
 
             TempData["MensajeExito"] = "Chofer actualizado correctamente.";
             return RedirectToAction("Index");
@@ -145,5 +108,25 @@ public class ChoferController : Controller
             ViewBag.MensajeError = ex.Message;
             return View(vm);
         }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Eliminar(int id)
+    {
+        var redireccion = VerificarAdministrador();
+        if (redireccion != null) return redireccion;
+
+        try
+        {
+            await _api.EliminarChoferAsync(id);
+            TempData["MensajeExito"] = "Chofer eliminado correctamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["MensajeError"] = ex.Message;
+        }
+
+        return RedirectToAction("Index");
     }
 }

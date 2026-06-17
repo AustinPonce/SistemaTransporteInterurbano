@@ -1,17 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SistemaTransporteInterurbano.BL.Interfaces;
-using SistemaTransporteInterurbano.WEB.Models.ViewModels;
 using SistemaTransporteInterurbano.Models;
+using SistemaTransporteInterurbano.WEB.Models.ViewModels;
+using SistemaTransporteInterurbano.WEB.Services;
 
 namespace SistemaTransporteInterurbano.WEB.Controllers;
 
 public class PasajeroController : Controller
 {
-    private readonly IPasajeroService _pasajeroService;
+    private readonly ApiClientService _api;
 
-    public PasajeroController(IPasajeroService pasajeroService)
+    public PasajeroController(ApiClientService api)
     {
-        _pasajeroService = pasajeroService;
+        _api = api;
     }
 
     private IActionResult? VerificarChofer()
@@ -28,7 +28,7 @@ public class PasajeroController : Controller
         var redireccion = VerificarChofer();
         if (redireccion != null) return redireccion;
 
-        var pasajeros = await _pasajeroService.ObtenerTodosAsync(filtroNombre);
+        var pasajeros = await _api.ObtenerPasajerosAsync(filtroNombre);
         ViewBag.FiltroNombre = filtroNombre;
         return View(pasajeros);
     }
@@ -53,11 +53,7 @@ public class PasajeroController : Controller
             if (!ModelState.IsValid)
                 return View(vm);
 
-            await _pasajeroService.AgregarAsync(
-                vm.Identificacion,
-                vm.Nombre,
-                vm.Apellidos,
-                vm.CorreoElectronico);
+            await _api.AgregarPasajeroAsync(vm.Identificacion, vm.Nombre, vm.Apellidos, vm.CorreoElectronico);
 
             TempData["MensajeExito"] = "Pasajero registrado correctamente. Se envió la clave al correo.";
             return RedirectToAction("Index");
@@ -75,7 +71,7 @@ public class PasajeroController : Controller
         var redireccion = VerificarChofer();
         if (redireccion != null) return redireccion;
 
-        var pasajero = await _pasajeroService.ObtenerPorIdAsync(id);
+        var pasajero = await _api.ObtenerPasajeroPorIdAsync(id);
 
         if (pasajero == null)
             return RedirectToAction("Index");
@@ -102,11 +98,7 @@ public class PasajeroController : Controller
             if (!ModelState.IsValid)
                 return View(vm);
 
-            await _pasajeroService.EditarAsync(
-                vm.PasajeroId,
-                vm.Identificacion,
-                vm.Nombre,
-                vm.Apellidos);
+            await _api.EditarPasajeroAsync(vm.PasajeroId, vm.Identificacion, vm.Nombre, vm.Apellidos);
 
             TempData["MensajeExito"] = "Pasajero actualizado correctamente.";
             return RedirectToAction("Index");

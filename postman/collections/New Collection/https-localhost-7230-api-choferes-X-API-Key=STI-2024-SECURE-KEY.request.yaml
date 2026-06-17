@@ -1,0 +1,10 @@
+$kind: http-request
+name: https://localhost:7230/api/choferes?X-API-Key=STI-2024-SECURE-KEY
+url: https://localhost:7230/api/choferes?X-API-Key=STI-2024-SECURE-KEY
+method: GET
+queryParams:
+  - key: X-API-Key
+    value: STI-2024-SECURE-KEY
+settings:
+  strictSSL: true
+order: 1781673471009

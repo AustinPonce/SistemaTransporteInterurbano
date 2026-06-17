@@ -1,35 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using SistemaTransporteInterurbano.BL.Interfaces;
 using SistemaTransporteInterurbano.Models;
 using SistemaTransporteInterurbano.Models.Entities;
 using SistemaTransporteInterurbano.WEB.Models.ViewModels;
+using SistemaTransporteInterurbano.WEB.Services;
 
 namespace SistemaTransporteInterurbano.WEB.Controllers;
 
 public class ViajeController : Controller
 {
-    private readonly IViajeService _viajeService;
-    private readonly IRutaService _rutaService;
-    private readonly IUnidadService _unidadService;
-    private readonly IChoferService _choferService;
-    private readonly INotificacionCorreoService _correoService;
-    private readonly IPasajeroService _pasajeroService;
+    private readonly ApiClientService _api;
 
-    public ViajeController(
-        IViajeService viajeService,
-        IRutaService rutaService,
-        IUnidadService unidadService,
-        IChoferService choferService,
-        IPasajeroService pasajeroService,
-        INotificacionCorreoService correoService)
+    public ViajeController(ApiClientService api)
     {
-        _viajeService = viajeService;
-        _rutaService = rutaService;
-        _unidadService = unidadService;
-        _choferService = choferService;
-        _correoService = correoService;
-        _pasajeroService = pasajeroService;
+        _api = api;
     }
 
     private IActionResult? VerificarAcceso()
@@ -46,7 +30,7 @@ public class ViajeController : Controller
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
-        var viajes = await _viajeService.ObtenerTodosAsync(filtroRuta, filtroFecha);
+        var viajes = await _api.ObtenerViajesAsync(filtroRuta, filtroFecha);
         ViewBag.FiltroRuta = filtroRuta;
         ViewBag.FiltroFecha = filtroFecha?.ToString("yyyy-MM-dd");
         return View(viajes);
@@ -88,12 +72,7 @@ public class ViajeController : Controller
                 return View(vm);
             }
 
-            await _viajeService.AgregarAsync(
-                vm.RutaId.Value,
-                vm.UnidadId.Value,
-                vm.ChoferId.Value,
-                vm.FechaSalida.Value,
-                vm.FechaLlegadaEstimada.Value);
+            await _api.AgregarViajeAsync(vm.RutaId.Value, vm.UnidadId.Value, vm.ChoferId.Value, vm.FechaSalida.Value, vm.FechaLlegadaEstimada.Value);
 
             TempData["MensajeExito"] = "Viaje registrado correctamente.";
             return RedirectToAction("Index");
@@ -112,7 +91,7 @@ public class ViajeController : Controller
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
-        var viaje = await _viajeService.ObtenerPorIdAsync(id);
+        var viaje = await _api.ObtenerViajePorIdAsync(id);
         if (viaje == null)
             return RedirectToAction("Index");
 
@@ -156,13 +135,7 @@ public class ViajeController : Controller
                 return View(vm);
             }
 
-            await _viajeService.EditarAsync(
-                vm.ViajeId,
-                vm.RutaId.Value,
-                vm.UnidadId.Value,
-                vm.ChoferId.Value,
-                vm.FechaSalida.Value,
-                vm.FechaLlegadaEstimada.Value);
+            await _api.EditarViajeAsync(vm.ViajeId, vm.RutaId.Value, vm.UnidadId.Value, vm.ChoferId.Value, vm.FechaSalida.Value, vm.FechaLlegadaEstimada.Value);
 
             TempData["MensajeExito"] = "Viaje actualizado correctamente.";
             return RedirectToAction("Index");
@@ -181,7 +154,7 @@ public class ViajeController : Controller
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
-        var viaje = await _viajeService.ObtenerPorIdAsync(id);
+        var viaje = await _api.ObtenerViajePorIdAsync(id);
         if (viaje == null)
             return RedirectToAction("Index");
 
@@ -206,7 +179,7 @@ public class ViajeController : Controller
             if (!ModelState.IsValid)
                 return View(vm);
 
-            await _viajeService.CancelarAsync(vm.ViajeId, vm.Motivo, _correoService);
+            await _api.CancelarViajeAsync(vm.ViajeId, vm.Motivo);
 
             TempData["MensajeExito"] = "Viaje cancelado correctamente. Se notificó a los pasajeros con reserva.";
             return RedirectToAction("Index");
@@ -227,7 +200,7 @@ public class ViajeController : Controller
 
         try
         {
-            await _viajeService.IniciarAsync(id);
+            await _api.IniciarViajeAsync(id);
             TempData["MensajeExito"] = "Viaje iniciado. Estado cambiado a En Curso.";
         }
         catch (Exception ex)
@@ -244,7 +217,7 @@ public class ViajeController : Controller
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
-        var viajes = await _viajeService.ObtenerCanceladosAsync();
+        var viajes = await _api.ObtenerViajesCanceladosAsync();
         return View(viajes);
     }
 
@@ -254,19 +227,20 @@ public class ViajeController : Controller
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
-        var viaje = await _viajeService.ObtenerPorIdAsync(id);
+        var viaje = await _api.ObtenerViajePorIdAsync(id);
         if (viaje == null || viaje.Estado != EstadoViaje.Cancelado)
             return RedirectToAction("Cancelados");
 
         return View(viaje);
     }
+
     [HttpGet]
     public async Task<IActionResult> EnCurso()
     {
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
-        var viajes = await _viajeService.ObtenerActivosAsync();
+        var viajes = await _api.ObtenerViajesActivosAsync();
         return View(viajes);
     }
 
@@ -276,15 +250,15 @@ public class ViajeController : Controller
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
-        var viaje = await _viajeService.ObtenerPorIdAsync(id);
+        var viaje = await _api.ObtenerViajePorIdAsync(id);
         if (viaje == null || viaje.Estado != EstadoViaje.EnCurso)
             return RedirectToAction("EnCurso");
 
-        var pasajeros = await _pasajeroService.ObtenerTodosAsync();
+        var pasajeros = await _api.ObtenerPasajerosAsync();
 
-        var asientosOcupados = viaje.Reservas
+        var asientosOcupados = viaje.Reservas?
             .Select(r => r.NumeroAsiento)
-            .ToList();
+            .ToList() ?? new List<int>();
 
         ViewBag.Viaje = viaje;
         ViewBag.Pasajeros = pasajeros.Select(p => new SelectListItem
@@ -293,7 +267,7 @@ public class ViajeController : Controller
             Text = $"{p.Nombre} {p.Apellidos} - {p.Identificacion}"
         }).ToList();
 
-        ViewBag.Capacidad = viaje.Unidad.CapacidadPasajeros;
+        ViewBag.Capacidad = viaje.Unidad?.CapacidadPasajeros ?? 0;
         ViewBag.AsientosOcupados = asientosOcupados;
 
         return View();
@@ -308,7 +282,7 @@ public class ViajeController : Controller
 
         try
         {
-            await _viajeService.ReservarAsientoAsync(viajeId, pasajeroId, numeroAsiento);
+            await _api.ReservarAsientoAsync(viajeId, pasajeroId, numeroAsiento);
             TempData["MensajeExito"] = "Reserva registrada correctamente.";
             return RedirectToAction("Pasajeros", new { id = viajeId });
         }
@@ -325,12 +299,12 @@ public class ViajeController : Controller
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
-        var viaje = await _viajeService.ObtenerPorIdAsync(id);
+        var viaje = await _api.ObtenerViajePorIdAsync(id);
         if (viaje == null)
             return RedirectToAction("EnCurso");
 
-        var reservas = await _viajeService.ObtenerPasajerosAsync(id);
-        var totales = await _viajeService.ObtenerTotalesAsync(id);
+        var reservas = await _api.ObtenerPasajerosDelViajeAsync(id);
+        var totales = await _api.ObtenerTotalesViajeAsync(id);
 
         ViewBag.Viaje = viaje;
         ViewBag.Pasajeros = totales.pasajeros;
@@ -349,7 +323,7 @@ public class ViajeController : Controller
 
         try
         {
-            await _viajeService.CancelarReservaAsync(reservaId);
+            await _api.CancelarReservaAsync(reservaId);
             TempData["MensajeExito"] = "Reserva cancelada correctamente.";
         }
         catch (Exception ex)
@@ -369,7 +343,7 @@ public class ViajeController : Controller
 
         try
         {
-            await _viajeService.FinalizarViajeAsync(id);
+            await _api.FinalizarViajeAsync(id);
             TempData["MensajeExito"] = "Viaje finalizado correctamente.";
         }
         catch (Exception ex)
@@ -386,13 +360,13 @@ public class ViajeController : Controller
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
-        var viaje = await _viajeService.ObtenerDetalleAsync(id);
+        var viaje = await _api.ObtenerDetalleViajeAsync(id);
         if (viaje == null || viaje.Estado != EstadoViaje.EnCurso)
             return RedirectToAction("EnCurso");
 
-        var totales = await _viajeService.ObtenerTotalesAsync(id);
+        var totales = await _api.ObtenerTotalesViajeAsync(id);
 
-        var vm = new SistemaTransporteInterurbano.WEB.Models.ViewModels.FinalizarViajeViewModel
+        var vm = new FinalizarViajeViewModel
         {
             ViajeId = viaje.ViajeId,
             RutaNombre = viaje.Ruta?.Nombre ?? "—",
@@ -405,11 +379,12 @@ public class ViajeController : Controller
 
         return View(vm);
     }
+
     private async Task CargarCatalogosAsync()
     {
-        var rutas = await _rutaService.ObtenerTodasAsync();
-        var unidades = await _unidadService.ObtenerTodasAsync();
-        var choferes = await _choferService.ObtenerTodosAsync();
+        var rutas = await _api.ObtenerRutasAsync();
+        var unidades = await _api.ObtenerUnidadesAsync();
+        var choferes = await _api.ObtenerChoferesAsync();
 
         ViewBag.Rutas = rutas.Select(r => new SelectListItem
         {

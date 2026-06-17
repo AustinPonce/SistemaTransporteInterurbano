@@ -8,4 +8,5 @@ public interface IChoferService
     Task AgregarAsync(string identificacion, string nombre, string apellidos, string correo);
     Task<Chofer?> ObtenerPorIdAsync(int id);
     Task EditarAsync(int id, string identificacion, string nombre, string apellidos);
+    Task EliminarAsync(int id);
 }

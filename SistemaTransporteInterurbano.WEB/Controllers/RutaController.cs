@@ -1,38 +1,25 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SistemaTransporteInterurbano.BL.Interfaces;
 using SistemaTransporteInterurbano.Models;
 using SistemaTransporteInterurbano.WEB.Models.ViewModels;
+using SistemaTransporteInterurbano.WEB.Services;
 
 namespace SistemaTransporteInterurbano.WEB.Controllers;
 
 public class RutaController : Controller
 {
-    private readonly IRutaService _rutaService;
+    private readonly ApiClientService _api;
 
-    public RutaController(IRutaService rutaService)
+    public RutaController(ApiClientService api)
     {
-        _rutaService = rutaService;
+        _api = api;
     }
 
     private IActionResult? VerificarAcceso()
     {
         var rol = HttpContext.Session.GetString("Rol");
-
         if (rol != Roles.Administrador && rol != Roles.Chofer)
             return RedirectToAction("IniciarSesion", "Autenticacion");
-
         return null;
-    }
-
-    private void CargarDestinos()
-    {
-        ViewBag.Destinos = new List<string>
-        {
-            "San José", "Alajuela", "Cartago", "Heredia", "Puntarenas",
-            "Liberia", "Limón", "Pérez Zeledón", "Turrialba", "Grecia",
-            "San Ramón", "Quesada", "Nicoya", "Santa Cruz", "Cañas",
-            "Ciudad Neily", "Golfito", "Guápiles", "Siquirres", "Parrita"
-        };
     }
 
     [HttpGet]
@@ -41,10 +28,8 @@ public class RutaController : Controller
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
-        var rutas = await _rutaService.ObtenerTodasAsync(filtro);
-
+        var rutas = await _api.ObtenerRutasAsync(filtro);
         ViewBag.Filtro = filtro;
-
         return View(rutas);
     }
 
@@ -54,7 +39,13 @@ public class RutaController : Controller
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
-        CargarDestinos();
+        ViewBag.Destinos = new List<string>
+        {
+            "San José", "Alajuela", "Cartago", "Heredia", "Puntarenas",
+            "Liberia", "Limón", "Pérez Zeledón", "Turrialba", "Grecia",
+            "San Ramón", "Quesada", "Nicoya", "Santa Cruz", "Cañas",
+            "Ciudad Neily", "Golfito", "Guápiles", "Siquirres", "Parrita"
+        };
 
         return View();
     }
@@ -68,31 +59,15 @@ public class RutaController : Controller
         try
         {
             if (!ModelState.IsValid)
-            {
-                CargarDestinos();
                 return View(vm);
-            }
 
             if (!TimeSpan.TryParseExact(vm.DuracionEstimada, @"hh\:mm", null, out var duracion))
             {
                 ViewBag.MensajeError = "El formato de duración es inválido. Use hh:mm.";
-                CargarDestinos();
                 return View(vm);
             }
 
-            if (!vm.PrecioBase.HasValue)
-            {
-                ViewBag.MensajeError = "El precio base es requerido.";
-                CargarDestinos();
-                return View(vm);
-            }
-
-            await _rutaService.AgregarAsync(
-                vm.Nombre,
-                vm.Origen,
-                vm.Destino,
-                duracion,
-                vm.PrecioBase.Value);
+            await _api.AgregarRutaAsync(vm.Nombre, vm.Origen, vm.Destino, duracion, vm.PrecioBase);
 
             TempData["MensajeExito"] = "Ruta registrada correctamente.";
             return RedirectToAction("Index");
@@ -100,7 +75,6 @@ public class RutaController : Controller
         catch (Exception ex)
         {
             ViewBag.MensajeError = ex.Message;
-            CargarDestinos();
             return View(vm);
         }
     }
@@ -111,12 +85,18 @@ public class RutaController : Controller
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
 
-        var ruta = await _rutaService.ObtenerPorIdAsync(id);
+        ViewBag.Destinos = new List<string>
+        {
+            "San José", "Alajuela", "Cartago", "Heredia", "Puntarenas",
+            "Liberia", "Limón", "Pérez Zeledón", "Turrialba", "Grecia",
+            "San Ramón", "Quesada", "Nicoya", "Santa Cruz", "Cañas",
+            "Ciudad Neily", "Golfito", "Guápiles", "Siquirres", "Parrita"
+        };
+
+        var ruta = await _api.ObtenerRutaPorIdAsync(id);
 
         if (ruta == null)
             return RedirectToAction("Index");
-
-        CargarDestinos();
 
         var vm = new EditarRutaViewModel
         {
@@ -140,32 +120,15 @@ public class RutaController : Controller
         try
         {
             if (!ModelState.IsValid)
-            {
-                CargarDestinos();
                 return View(vm);
-            }
 
             if (!TimeSpan.TryParseExact(vm.DuracionEstimada, @"hh\:mm", null, out var duracion))
             {
                 ViewBag.MensajeError = "El formato de duración es inválido. Use hh:mm.";
-                CargarDestinos();
                 return View(vm);
             }
 
-            if (!vm.PrecioBase.HasValue)
-            {
-                ViewBag.MensajeError = "El precio base es requerido.";
-                CargarDestinos();
-                return View(vm);
-            }
-
-            await _rutaService.EditarAsync(
-                vm.RutaId,
-                vm.Nombre,
-                vm.Origen,
-                vm.Destino,
-                duracion,
-                vm.PrecioBase.Value);
+            await _api.EditarRutaAsync(vm.RutaId, vm.Nombre, vm.Origen, vm.Destino, duracion, vm.PrecioBase);
 
             TempData["MensajeExito"] = "Ruta actualizada correctamente.";
             return RedirectToAction("Index");
@@ -173,7 +136,6 @@ public class RutaController : Controller
         catch (Exception ex)
         {
             ViewBag.MensajeError = ex.Message;
-            CargarDestinos();
             return View(vm);
         }
     }

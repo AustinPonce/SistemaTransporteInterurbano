@@ -1,86 +1,81 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SistemaTransporteInterurbano.BL.Interfaces;
 using SistemaTransporteInterurbano.Models;
+using SistemaTransporteInterurbano.WEB.Services;
 
-namespace SistemaTransporteInterurbano.WEB.Controllers
+namespace SistemaTransporteInterurbano.WEB.Controllers;
+
+public class MisViajesController : Controller
 {
-    public class MisViajesController : Controller
+    private readonly ApiClientService _api;
+
+    public MisViajesController(ApiClientService api)
     {
-        private readonly IViajeService _viajeService;
-        private readonly IPasajeroService _pasajeroService;
+        _api = api;
+    }
 
-        public MisViajesController(
-            IViajeService viajeService,
-            IPasajeroService pasajeroService)
+    private IActionResult? VerificarAcceso()
+    {
+        var rol = HttpContext.Session.GetString("Rol");
+
+        if (rol != Roles.Pasajero)
+            return RedirectToAction("IniciarSesion", "Autenticacion");
+
+        return null;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        var redireccion = VerificarAcceso();
+        if (redireccion != null) return redireccion;
+
+        int? usuarioId = HttpContext.Session.GetInt32("UsuarioId");
+
+        if (usuarioId == null)
+            return RedirectToAction("IniciarSesion", "Autenticacion");
+
+        var pasajero = await _api.ObtenerPasajeroPorUsuarioIdAsync(usuarioId.Value);
+
+        if (pasajero == null)
         {
-            _viajeService = viajeService;
-            _pasajeroService = pasajeroService;
+            TempData["MensajeError"] = "No se encontró el pasajero asociado al usuario actual.";
+            return View(new List<SistemaTransporteInterurbano.Models.Entities.Reserva>());
         }
 
-        private IActionResult? VerificarAcceso()
-        {
-            var rol = HttpContext.Session.GetString("Rol");
+        var reservas = await _api.ObtenerReservasPasajeroAsync(pasajero.PasajeroId);
 
-            if (rol != Roles.Pasajero)
-                return RedirectToAction("IniciarSesion", "Autenticacion");
+        return View(reservas);
+    }
 
-            return null;
-        }
+    [HttpGet]
+    public async Task<IActionResult> Detalle(int id)
+    {
+        var redireccion = VerificarAcceso();
+        if (redireccion != null) return redireccion;
 
-        [HttpGet]
-        public async Task<IActionResult> Index()
-        {
-            var redireccion = VerificarAcceso();
-            if (redireccion != null) return redireccion;
+        int? usuarioId = HttpContext.Session.GetInt32("UsuarioId");
 
-            int? usuarioId = HttpContext.Session.GetInt32("UsuarioId");
+        if (usuarioId == null)
+            return RedirectToAction("IniciarSesion", "Autenticacion");
 
-            if (usuarioId == null)
-                return RedirectToAction("IniciarSesion", "Autenticacion");
+        var pasajero = await _api.ObtenerPasajeroPorUsuarioIdAsync(usuarioId.Value);
 
-            var pasajero = await _pasajeroService.ObtenerPorUsuarioIdAsync(usuarioId.Value);
+        if (pasajero == null)
+            return RedirectToAction("Index");
 
-            if (pasajero == null)
-            {
-                TempData["MensajeError"] = "No se encontró el pasajero asociado al usuario actual.";
-                return View(new List<SistemaTransporteInterurbano.Models.Entities.Reserva>());
-            }
+        var viaje = await _api.ObtenerDetalleViajeAsync(id);
 
-            var reservas = await _viajeService.ObtenerReservasPasajeroAsync(pasajero.PasajeroId);
+        if (viaje == null)
+            return RedirectToAction("Index");
 
-            return View(reservas);
-        }
+        var reserva = viaje.Reservas?
+            .FirstOrDefault(r => r.PasajeroId == pasajero.PasajeroId);
 
-        [HttpGet]
-        public async Task<IActionResult> Detalle(int id)
-        {
-            var redireccion = VerificarAcceso();
-            if (redireccion != null) return redireccion;
+        if (reserva == null)
+            return RedirectToAction("Index");
 
-            int? usuarioId = HttpContext.Session.GetInt32("UsuarioId");
+        ViewBag.Reserva = reserva;
 
-            if (usuarioId == null)
-                return RedirectToAction("IniciarSesion", "Autenticacion");
-
-            var pasajero = await _pasajeroService.ObtenerPorUsuarioIdAsync(usuarioId.Value);
-
-            if (pasajero == null)
-                return RedirectToAction("Index");
-
-            var viaje = await _viajeService.ObtenerDetalleAsync(id);
-
-            if (viaje == null)
-                return RedirectToAction("Index");
-
-            var reserva = viaje.Reservas
-                .FirstOrDefault(r => r.PasajeroId == pasajero.PasajeroId);
-
-            if (reserva == null)
-                return RedirectToAction("Index");
-
-            ViewBag.Reserva = reserva;
-
-            return View(viaje);
-        }
+        return View(viaje);
     }
 }
