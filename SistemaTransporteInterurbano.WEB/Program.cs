@@ -28,7 +28,7 @@ builder.Services.AddSession(options =>
 });
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddHttpClient<ApiClientService>();
+builder.Services.AddHttpClient<ServicioClienteApi>();
 
 builder.Services.AddEndpointsApiExplorer();
 

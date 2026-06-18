@@ -1,99 +1,109 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SistemaTransporteInterurbano.BL.Interfaces;
-using SistemaTransporteInterurbano.Models;
+using SistemaTransporteInterurbano.WEB.Helpers;
+using SistemaTransporteInterurbano.WEB.Models;
 
 namespace SistemaTransporteInterurbano.WEB.Controllers.Api;
 
 [ApiController]
-[Route("api/auth")]
+[Route("api/autenticacion")]
+[ClaveApi]
 public class AutenticacionApiController : ControllerBase
 {
     private readonly IAutenticacionService _autenticacionService;
-    private readonly IPasajeroService _pasajeroService;
 
-    public AutenticacionApiController(
-        IAutenticacionService autenticacionService,
-        IPasajeroService pasajeroService)
+    public AutenticacionApiController(IAutenticacionService autenticacionService)
     {
         _autenticacionService = autenticacionService;
-        _pasajeroService = pasajeroService;
     }
 
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginApiRequest request)
+    [HttpPost("iniciar-sesion")]
+    public async Task<IActionResult> IniciarSesion([FromBody] InicioSesionRequest solicitud)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(request.NombreUsuario) ||
-                string.IsNullOrWhiteSpace(request.Clave))
+            var usuario = await _autenticacionService.AutenticarUsuarioPorNombreYClave(
+                solicitud.NombreUsuario, solicitud.Clave);
+
+            return Ok(ApiRespuesta<object>.Exito(new
             {
-                return BadRequest(new
-                {
-                    mensaje = "Debe ingresar nombre de usuario y clave."
-                });
-            }
-
-            var usuario = await _autenticacionService
-                .AutenticarUsuarioPorNombreYClave(
-                    request.NombreUsuario,
-                    request.Clave);
-
-            if (usuario == null)
-            {
-                return Unauthorized(new
-                {
-                    mensaje = "Credenciales incorrectas."
-                });
-            }
-
-            if (usuario.Rol?.Nombre != Roles.Pasajero)
-            {
-                return Unauthorized(new
-                {
-                    mensaje = "La aplicación móvil es exclusiva para pasajeros."
-                });
-            }
-
-            var pasajero = await _pasajeroService.ObtenerPorUsuarioIdAsync(usuario.UsuarioId);
-
-            if (pasajero == null)
-            {
-                return NotFound(new
-                {
-                    mensaje = "No se encontró el pasajero asociado al usuario."
-                });
-            }
-
-            return Ok(new LoginApiResponse
-            {
-                UsuarioId = usuario.UsuarioId,
-                PasajeroId = pasajero.PasajeroId,
-                NombreUsuario = usuario.NombreUsuario,
-                Rol = usuario.Rol.Nombre,
-                NombreCompleto = $"{pasajero.Nombre} {pasajero.Apellidos}"
-            });
+                usuarioId = usuario!.UsuarioId,
+                nombreUsuario = usuario.NombreUsuario,
+                rol = usuario.Rol!.Nombre
+            }));
         }
-        catch (Exception ex)
+        catch (Exception error)
         {
-            return Unauthorized(new
-            {
-                mensaje = ex.Message
-            });
+            return BadRequest(ApiRespuesta<object>.Error(error.Message));
+        }
+    }
+
+    [HttpPost("cambiar-clave")]
+    public async Task<IActionResult> CambiarClave([FromBody] CambiarClaveRequest solicitud)
+    {
+        try
+        {
+            await _autenticacionService.CambiarClaveDeUsuario(
+                solicitud.NombreUsuario, solicitud.ClaveActual, solicitud.NuevaClave);
+            return Ok(ApiRespuesta<object>.Exito(null, "Clave actualizada correctamente."));
+        }
+        catch (Exception error)
+        {
+            return BadRequest(ApiRespuesta<object>.Error(error.Message));
+        }
+    }
+
+    [HttpPost("recuperar")]
+    public async Task<IActionResult> Recuperar([FromBody] RecuperarRequest solicitud)
+    {
+        try
+        {
+            await _autenticacionService.IniciarRecuperacionPorCorreoAsync(solicitud.Correo);
+            return Ok(ApiRespuesta<object>.Exito(null, "Código enviado al correo."));
+        }
+        catch (Exception error)
+        {
+            return BadRequest(ApiRespuesta<object>.Error(error.Message));
+        }
+    }
+
+    [HttpPost("resetear")]
+    public async Task<IActionResult> Resetear([FromBody] ResetearRequest solicitud)
+    {
+        try
+        {
+            await _autenticacionService.ResetearClaveConCodigoAsync(
+                solicitud.Correo, solicitud.Codigo, solicitud.NuevaClave);
+            return Ok(ApiRespuesta<object>.Exito(null, "Clave restablecida correctamente."));
+        }
+        catch (Exception error)
+        {
+            return BadRequest(ApiRespuesta<object>.Error(error.Message));
         }
     }
 }
 
-public class LoginApiRequest
+public class InicioSesionRequest
 {
     public string NombreUsuario { get; set; } = string.Empty;
     public string Clave { get; set; } = string.Empty;
 }
 
-public class LoginApiResponse
+public class CambiarClaveRequest
 {
-    public int UsuarioId { get; set; }
-    public int PasajeroId { get; set; }
     public string NombreUsuario { get; set; } = string.Empty;
-    public string Rol { get; set; } = string.Empty;
-    public string NombreCompleto { get; set; } = string.Empty;
+    public string ClaveActual { get; set; } = string.Empty;
+    public string NuevaClave { get; set; } = string.Empty;
+}
+
+public class RecuperarRequest
+{
+    public string Correo { get; set; } = string.Empty;
+}
+
+public class ResetearRequest
+{
+    public string Correo { get; set; } = string.Empty;
+    public string Codigo { get; set; } = string.Empty;
+    public string NuevaClave { get; set; } = string.Empty;
 }
