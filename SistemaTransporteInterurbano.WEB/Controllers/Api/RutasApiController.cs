@@ -8,7 +8,7 @@ namespace SistemaTransporteInterurbano.WEB.Controllers.Api;
 
 [ApiController]
 [Route("api/rutas")]
-[ClaveApi]
+[ApiKey]
 public class RutasApiController : ControllerBase
 {
     private readonly IRutaService _rutaService;
@@ -24,11 +24,11 @@ public class RutasApiController : ControllerBase
         try
         {
             var rutas = await _rutaService.ObtenerTodasAsync(filtro);
-            return Ok(ApiRespuesta<List<Ruta>>.Exito(rutas));
+            return Ok(ApiResponse<List<Ruta>>.Ok(rutas));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -39,12 +39,12 @@ public class RutasApiController : ControllerBase
         {
             var ruta = await _rutaService.ObtenerPorIdAsync(id);
             if (ruta == null)
-                return NotFound(ApiRespuesta<object>.Error("Ruta no encontrada."));
-            return Ok(ApiRespuesta<Ruta>.Exito(ruta));
+                return NotFound(ApiResponse<object>.Fail("Ruta no encontrada."));
+            return Ok(ApiResponse<Ruta>.Ok(ruta));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -54,14 +54,14 @@ public class RutasApiController : ControllerBase
         try
         {
             if (!TimeSpan.TryParseExact(vm.DuracionEstimada, @"hh\:mm", null, out var duracion))
-                return BadRequest(ApiRespuesta<object>.Error("El formato de duración es inválido. Use hh:mm."));
+                return BadRequest(ApiResponse<object>.Fail("El formato de duración es inválido. Use hh:mm."));
 
             await _rutaService.AgregarAsync(vm.Nombre, vm.Origen, vm.Destino, duracion, vm.PrecioBase);
-            return Ok(ApiRespuesta<object>.Exito(null, "Ruta registrada correctamente."));
+            return Ok(ApiResponse<object>.Ok(null, "Ruta registrada correctamente."));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -71,14 +71,14 @@ public class RutasApiController : ControllerBase
         try
         {
             if (!TimeSpan.TryParseExact(vm.DuracionEstimada, @"hh\:mm", null, out var duracion))
-                return BadRequest(ApiRespuesta<object>.Error("El formato de duración es inválido. Use hh:mm."));
+                return BadRequest(ApiResponse<object>.Fail("El formato de duración es inválido. Use hh:mm."));
 
             await _rutaService.EditarAsync(id, vm.Nombre, vm.Origen, vm.Destino, duracion, vm.PrecioBase);
-            return Ok(ApiRespuesta<object>.Exito(null, "Ruta actualizada correctamente."));
+            return Ok(ApiResponse<object>.Ok(null, "Ruta actualizada correctamente."));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 }

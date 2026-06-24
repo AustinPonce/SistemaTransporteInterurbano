@@ -1,17 +1,19 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SistemaTransporteInterurbano.BL.Interfaces;
 using SistemaTransporteInterurbano.WEB.Models.ViewModels;
-using SistemaTransporteInterurbano.WEB.Services;
 using SistemaTransporteInterurbano.Models;
 
 namespace SistemaTransporteInterurbano.WEB.Controllers;
 
 public class AutenticacionController : Controller
 {
-    private readonly ServicioClienteApi _api;
+    private readonly IAutenticacionService _autenticacionService;
+    private readonly INotificacionCorreoService _notificacionCorreoService;
 
-    public AutenticacionController(ServicioClienteApi api)
+    public AutenticacionController(IAutenticacionService autenticacionService, INotificacionCorreoService notificacionCorreoService)
     {
-        _api = api;
+        _autenticacionService = autenticacionService;
+        _notificacionCorreoService = notificacionCorreoService;
     }
 
     [HttpGet]
@@ -28,16 +30,18 @@ public class AutenticacionController : Controller
             if (!ModelState.IsValid)
                 return View(viewModel);
 
-            var (usuarioId, nombreUsuario, rol) = await _api.IniciarSesionAsync(
-                viewModel.NombreUsuario, viewModel.Clave);
+            var usuario = await _autenticacionService
+                .AutenticarUsuarioPorNombreYClave(
+                    viewModel.NombreUsuario,
+                    viewModel.Clave);
 
-            HttpContext.Session.SetString("NombreUsuario", nombreUsuario);
-            HttpContext.Session.SetString("Rol", rol);
-            HttpContext.Session.SetInt32("UsuarioId", usuarioId);
+            HttpContext.Session.SetString("NombreUsuario", usuario!.NombreUsuario);
+            HttpContext.Session.SetString("Rol", usuario.Rol!.Nombre);
+            HttpContext.Session.SetInt32("UsuarioId", usuario.UsuarioId);
 
             TempData["MensajeExito"] = "Inicio de sesión exitoso.";
 
-            return rol switch
+            return usuario.Rol!.Nombre switch
             {
                 Roles.Administrador => RedirectToAction("Index", "Home"),
                 Roles.Chofer => RedirectToAction("Index", "Home"),
@@ -72,7 +76,7 @@ public class AutenticacionController : Controller
             if (!ModelState.IsValid)
                 return View(viewModel);
 
-            await _api.CambiarClaveAsync(
+            await _autenticacionService.CambiarClaveDeUsuario(
                 viewModel.NombreUsuario,
                 viewModel.ClaveActual,
                 viewModel.NuevaClave);
@@ -101,7 +105,7 @@ public class AutenticacionController : Controller
             if (!ModelState.IsValid)
                 return View(vm);
 
-            await _api.RecuperarAsync(vm.Correo);
+            await _autenticacionService.IniciarRecuperacionPorCorreoAsync(vm.Correo);
             TempData["MensajeExito"] = "Se envió un código a su correo.";
             return RedirectToAction("Resetear");
         }
@@ -126,7 +130,7 @@ public class AutenticacionController : Controller
             if (!ModelState.IsValid)
                 return View(vm);
 
-            await _api.ResetearAsync(vm.Correo, vm.Codigo, vm.NuevaClave);
+            await _autenticacionService.ResetearClaveConCodigoAsync(vm.Correo, vm.Codigo, vm.NuevaClave);
             TempData["MensajeExito"] = "La contraseña fue restablecida.";
             return RedirectToAction("IniciarSesion");
         }

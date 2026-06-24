@@ -7,9 +7,9 @@ namespace SistemaTransporteInterurbano.WEB.Controllers;
 
 public class RutaController : Controller
 {
-    private readonly ServicioClienteApi _api;
+    private readonly ApiClientService _api;
 
-    public RutaController(ServicioClienteApi api)
+    public RutaController(ApiClientService api)
     {
         _api = api;
     }

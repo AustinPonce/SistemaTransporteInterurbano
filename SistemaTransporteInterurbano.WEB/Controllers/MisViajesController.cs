@@ -6,9 +6,9 @@ namespace SistemaTransporteInterurbano.WEB.Controllers;
 
 public class MisViajesController : Controller
 {
-    private readonly ServicioClienteApi _api;
+    private readonly ApiClientService _api;
 
-    public MisViajesController(ServicioClienteApi api)
+    public MisViajesController(ApiClientService api)
     {
         _api = api;
     }

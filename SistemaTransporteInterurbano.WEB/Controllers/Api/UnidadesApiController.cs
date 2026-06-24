@@ -8,7 +8,7 @@ namespace SistemaTransporteInterurbano.WEB.Controllers.Api;
 
 [ApiController]
 [Route("api/unidades")]
-[ClaveApi]
+[ApiKey]
 public class UnidadesApiController : ControllerBase
 {
     private readonly IUnidadService _unidadService;
@@ -24,11 +24,11 @@ public class UnidadesApiController : ControllerBase
         try
         {
             var unidades = await _unidadService.ObtenerTodasAsync();
-            return Ok(ApiRespuesta<List<Unidad>>.Exito(unidades));
+            return Ok(ApiResponse<List<Unidad>>.Ok(unidades));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -39,12 +39,12 @@ public class UnidadesApiController : ControllerBase
         {
             var unidad = await _unidadService.ObtenerPorIdAsync(id);
             if (unidad == null)
-                return NotFound(ApiRespuesta<object>.Error("Unidad no encontrada."));
-            return Ok(ApiRespuesta<Unidad>.Exito(unidad));
+                return NotFound(ApiResponse<object>.Fail("Unidad no encontrada."));
+            return Ok(ApiResponse<Unidad>.Ok(unidad));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -54,11 +54,11 @@ public class UnidadesApiController : ControllerBase
         try
         {
             await _unidadService.AgregarAsync(vm.Placa, vm.Modelo, vm.AnioFabricacion, vm.CapacidadPasajeros);
-            return Ok(ApiRespuesta<object>.Exito(null, "Unidad registrada correctamente."));
+            return Ok(ApiResponse<object>.Ok(null, "Unidad registrada correctamente."));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -68,11 +68,11 @@ public class UnidadesApiController : ControllerBase
         try
         {
             await _unidadService.EditarAsync(id, vm.Placa, vm.Modelo, vm.AnioFabricacion, vm.CapacidadPasajeros);
-            return Ok(ApiRespuesta<object>.Exito(null, "Unidad actualizada correctamente."));
+            return Ok(ApiResponse<object>.Ok(null, "Unidad actualizada correctamente."));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 }

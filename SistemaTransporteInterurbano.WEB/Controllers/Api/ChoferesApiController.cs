@@ -8,7 +8,7 @@ namespace SistemaTransporteInterurbano.WEB.Controllers.Api;
 
 [ApiController]
 [Route("api/choferes")]
-[ClaveApi]
+[ApiKey]
 public class ChoferesApiController : ControllerBase
 {
     private readonly IChoferService _choferService;
@@ -24,11 +24,11 @@ public class ChoferesApiController : ControllerBase
         try
         {
             var choferes = await _choferService.ObtenerTodosAsync(filtroNombre);
-            return Ok(ApiRespuesta<List<Chofer>>.Exito(choferes));
+            return Ok(ApiResponse<List<Chofer>>.Ok(choferes));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -39,12 +39,12 @@ public class ChoferesApiController : ControllerBase
         {
             var chofer = await _choferService.ObtenerPorIdAsync(id);
             if (chofer == null)
-                return NotFound(ApiRespuesta<object>.Error("Chofer no encontrado."));
-            return Ok(ApiRespuesta<Chofer>.Exito(chofer));
+                return NotFound(ApiResponse<object>.Fail("Chofer no encontrado."));
+            return Ok(ApiResponse<Chofer>.Ok(chofer));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -54,11 +54,11 @@ public class ChoferesApiController : ControllerBase
         try
         {
             await _choferService.AgregarAsync(vm.Identificacion, vm.Nombre, vm.Apellidos, vm.CorreoElectronico);
-            return Ok(ApiRespuesta<object>.Exito(null, "Chofer registrado correctamente."));
+            return Ok(ApiResponse<object>.Ok(null, "Chofer registrado correctamente."));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -68,11 +68,11 @@ public class ChoferesApiController : ControllerBase
         try
         {
             await _choferService.EditarAsync(id, vm.Identificacion, vm.Nombre, vm.Apellidos);
-            return Ok(ApiRespuesta<object>.Exito(null, "Chofer actualizado correctamente."));
+            return Ok(ApiResponse<object>.Ok(null, "Chofer actualizado correctamente."));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -82,11 +82,11 @@ public class ChoferesApiController : ControllerBase
         try
         {
             await _choferService.EliminarAsync(id);
-            return Ok(ApiRespuesta<object>.Exito(null, "Chofer eliminado correctamente."));
+            return Ok(ApiResponse<object>.Ok(null, "Chofer eliminado correctamente."));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 }

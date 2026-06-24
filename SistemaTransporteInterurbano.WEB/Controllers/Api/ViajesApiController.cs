@@ -8,7 +8,7 @@ namespace SistemaTransporteInterurbano.WEB.Controllers.Api;
 
 [ApiController]
 [Route("api/viajes")]
-[ClaveApi]
+[ApiKey]
 public class ViajesApiController : ControllerBase
 {
     private readonly IViajeService _viajeService;
@@ -26,11 +26,11 @@ public class ViajesApiController : ControllerBase
         try
         {
             var viajes = await _viajeService.ObtenerTodosAsync(filtroRuta, filtroFecha);
-            return Ok(ApiRespuesta<List<Viaje>>.Exito(viajes));
+            return Ok(ApiResponse<List<Viaje>>.Ok(viajes));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -41,12 +41,12 @@ public class ViajesApiController : ControllerBase
         {
             var viaje = await _viajeService.ObtenerPorIdAsync(id);
             if (viaje == null)
-                return NotFound(ApiRespuesta<object>.Error("Viaje no encontrado."));
-            return Ok(ApiRespuesta<Viaje>.Exito(viaje));
+                return NotFound(ApiResponse<object>.Fail("Viaje no encontrado."));
+            return Ok(ApiResponse<Viaje>.Ok(viaje));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -57,12 +57,12 @@ public class ViajesApiController : ControllerBase
         {
             var viaje = await _viajeService.ObtenerDetalleAsync(id);
             if (viaje == null)
-                return NotFound(ApiRespuesta<object>.Error("Viaje no encontrado."));
-            return Ok(ApiRespuesta<Viaje>.Exito(viaje));
+                return NotFound(ApiResponse<object>.Fail("Viaje no encontrado."));
+            return Ok(ApiResponse<Viaje>.Ok(viaje));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -72,11 +72,11 @@ public class ViajesApiController : ControllerBase
         try
         {
             var viajes = await _viajeService.ObtenerActivosAsync();
-            return Ok(ApiRespuesta<List<Viaje>>.Exito(viajes));
+            return Ok(ApiResponse<List<Viaje>>.Ok(viajes));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -86,11 +86,11 @@ public class ViajesApiController : ControllerBase
         try
         {
             var viajes = await _viajeService.ObtenerCanceladosAsync();
-            return Ok(ApiRespuesta<List<Viaje>>.Exito(viajes));
+            return Ok(ApiResponse<List<Viaje>>.Ok(viajes));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -102,11 +102,11 @@ public class ViajesApiController : ControllerBase
             await _viajeService.AgregarAsync(
                 vm.RutaId!.Value, vm.UnidadId!.Value, vm.ChoferId!.Value,
                 vm.FechaSalida!.Value, vm.FechaLlegadaEstimada!.Value);
-            return Ok(ApiRespuesta<object>.Exito(null, "Viaje registrado correctamente."));
+            return Ok(ApiResponse<object>.Ok(null, "Viaje registrado correctamente."));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -118,11 +118,11 @@ public class ViajesApiController : ControllerBase
             await _viajeService.EditarAsync(
                 id, vm.RutaId!.Value, vm.UnidadId!.Value, vm.ChoferId!.Value,
                 vm.FechaSalida!.Value, vm.FechaLlegadaEstimada!.Value);
-            return Ok(ApiRespuesta<object>.Exito(null, "Viaje actualizado correctamente."));
+            return Ok(ApiResponse<object>.Ok(null, "Viaje actualizado correctamente."));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -132,11 +132,11 @@ public class ViajesApiController : ControllerBase
         try
         {
             await _viajeService.CancelarAsync(id, request.Motivo, _correoService);
-            return Ok(ApiRespuesta<object>.Exito(null, "Viaje cancelado correctamente."));
+            return Ok(ApiResponse<object>.Ok(null, "Viaje cancelado correctamente."));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -146,11 +146,11 @@ public class ViajesApiController : ControllerBase
         try
         {
             await _viajeService.IniciarAsync(id);
-            return Ok(ApiRespuesta<object>.Exito(null, "Viaje iniciado."));
+            return Ok(ApiResponse<object>.Ok(null, "Viaje iniciado."));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -160,11 +160,11 @@ public class ViajesApiController : ControllerBase
         try
         {
             await _viajeService.FinalizarViajeAsync(id);
-            return Ok(ApiRespuesta<object>.Exito(null, "Viaje finalizado."));
+            return Ok(ApiResponse<object>.Ok(null, "Viaje finalizado."));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -174,11 +174,11 @@ public class ViajesApiController : ControllerBase
         try
         {
             var reservas = await _viajeService.ObtenerPasajerosAsync(id);
-            return Ok(ApiRespuesta<List<Reserva>>.Exito(reservas));
+            return Ok(ApiResponse<List<Reserva>>.Ok(reservas));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -188,11 +188,11 @@ public class ViajesApiController : ControllerBase
         try
         {
             await _viajeService.ReservarAsientoAsync(id, request.PasajeroId, request.NumeroAsiento);
-            return Ok(ApiRespuesta<object>.Exito(null, "Reserva registrada correctamente."));
+            return Ok(ApiResponse<object>.Ok(null, "Reserva registrada correctamente."));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -202,11 +202,11 @@ public class ViajesApiController : ControllerBase
         try
         {
             await _viajeService.CancelarReservaAsync(reservaId);
-            return Ok(ApiRespuesta<object>.Exito(null, "Reserva cancelada correctamente."));
+            return Ok(ApiResponse<object>.Ok(null, "Reserva cancelada correctamente."));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -216,11 +216,11 @@ public class ViajesApiController : ControllerBase
         try
         {
             var totales = await _viajeService.ObtenerTotalesAsync(id);
-            return Ok(ApiRespuesta<object>.Exito(new { totales.pasajeros, totales.disponibles, totales.total }));
+            return Ok(ApiResponse<object>.Ok(new { totales.pasajeros, totales.disponibles, totales.total }));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -230,11 +230,11 @@ public class ViajesApiController : ControllerBase
         try
         {
             var reservas = await _viajeService.ObtenerReservasPasajeroAsync(pasajeroId);
-            return Ok(ApiRespuesta<List<Reserva>>.Exito(reservas));
+            return Ok(ApiResponse<List<Reserva>>.Ok(reservas));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 

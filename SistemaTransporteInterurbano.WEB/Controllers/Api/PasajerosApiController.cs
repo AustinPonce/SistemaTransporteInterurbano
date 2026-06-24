@@ -8,7 +8,7 @@ namespace SistemaTransporteInterurbano.WEB.Controllers.Api;
 
 [ApiController]
 [Route("api/pasajeros")]
-[ClaveApi]
+[ApiKey]
 public class PasajerosApiController : ControllerBase
 {
     private readonly IPasajeroService _pasajeroService;
@@ -24,11 +24,11 @@ public class PasajerosApiController : ControllerBase
         try
         {
             var pasajeros = await _pasajeroService.ObtenerTodosAsync(filtroNombre);
-            return Ok(ApiRespuesta<List<Pasajero>>.Exito(pasajeros));
+            return Ok(ApiResponse<List<Pasajero>>.Ok(pasajeros));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -39,12 +39,12 @@ public class PasajerosApiController : ControllerBase
         {
             var pasajero = await _pasajeroService.ObtenerPorIdAsync(id);
             if (pasajero == null)
-                return NotFound(ApiRespuesta<object>.Error("Pasajero no encontrado."));
-            return Ok(ApiRespuesta<Pasajero>.Exito(pasajero));
+                return NotFound(ApiResponse<object>.Fail("Pasajero no encontrado."));
+            return Ok(ApiResponse<Pasajero>.Ok(pasajero));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -55,12 +55,12 @@ public class PasajerosApiController : ControllerBase
         {
             var pasajero = await _pasajeroService.ObtenerPorUsuarioIdAsync(usuarioId);
             if (pasajero == null)
-                return NotFound(ApiRespuesta<object>.Error("Pasajero no encontrado."));
-            return Ok(ApiRespuesta<Pasajero>.Exito(pasajero));
+                return NotFound(ApiResponse<object>.Fail("Pasajero no encontrado."));
+            return Ok(ApiResponse<Pasajero>.Ok(pasajero));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -70,11 +70,11 @@ public class PasajerosApiController : ControllerBase
         try
         {
             await _pasajeroService.AgregarAsync(vm.Identificacion, vm.Nombre, vm.Apellidos, vm.CorreoElectronico);
-            return Ok(ApiRespuesta<object>.Exito(null, "Pasajero registrado correctamente."));
+            return Ok(ApiResponse<object>.Ok(null, "Pasajero registrado correctamente."));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 
@@ -84,11 +84,11 @@ public class PasajerosApiController : ControllerBase
         try
         {
             await _pasajeroService.EditarAsync(id, vm.Identificacion, vm.Nombre, vm.Apellidos);
-            return Ok(ApiRespuesta<object>.Exito(null, "Pasajero actualizado correctamente."));
+            return Ok(ApiResponse<object>.Ok(null, "Pasajero actualizado correctamente."));
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiRespuesta<object>.Error(ex.Message));
+            return BadRequest(ApiResponse<object>.Fail(ex.Message));
         }
     }
 }
