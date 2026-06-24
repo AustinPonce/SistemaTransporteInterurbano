@@ -9,9 +9,9 @@ namespace SistemaTransporteInterurbano.WEB.Controllers;
 
 public class ViajeController : Controller
 {
-    private readonly ApiClientService _api;
+    private readonly ServicioClienteApi _api;
 
-    public ViajeController(ApiClientService api)
+    public ViajeController(ServicioClienteApi api)
     {
         _api = api;
     }
