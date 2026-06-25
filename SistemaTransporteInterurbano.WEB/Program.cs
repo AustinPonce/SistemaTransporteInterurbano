@@ -7,7 +7,17 @@ using SistemaTransporteInterurbano.WEB.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews()
+builder.Services.AddControllersWithViews(options =>
+{
+    options.ModelBindingMessageProvider.SetValueIsInvalidAccessor(
+        value => $"El valor '{value}' no es válido.");
+    options.ModelBindingMessageProvider.SetAttemptedValueIsInvalidAccessor(
+        (value, field) => $"El valor '{value}' no es válido para {field}.");
+    options.ModelBindingMessageProvider.SetMissingBindRequiredValueAccessor(
+        field => $"Debe ingresar un valor para {field}.");
+    options.ModelBindingMessageProvider.SetValueMustNotBeNullAccessor(
+        value => "Este campo es requerido.");
+})
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;

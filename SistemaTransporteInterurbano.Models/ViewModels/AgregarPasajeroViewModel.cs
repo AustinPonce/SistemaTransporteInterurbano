@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SistemaTransporteInterurbano.WEB.Models.ViewModels;
+namespace SistemaTransporteInterurbano.Models.ViewModels;
 
 public class AgregarPasajeroViewModel
 {

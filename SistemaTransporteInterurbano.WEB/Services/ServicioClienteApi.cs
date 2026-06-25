@@ -1,56 +1,71 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using SistemaTransporteInterurbano.Models.Entities;
-using SistemaTransporteInterurbano.WEB.Models;
+using SistemaTransporteInterurbano.API.Models;
 
 namespace SistemaTransporteInterurbano.WEB.Services;
 
 public class ServicioClienteApi
 {
     private readonly HttpClient _httpClient;
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly string _apiKey;
+    private readonly string _urlBase;
 
-    public ServicioClienteApi(HttpClient httpClient, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
+    public ServicioClienteApi(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
-        _httpContextAccessor = httpContextAccessor;
         _apiKey = configuration["ApiSettings:ApiKey"]!;
+        _urlBase = configuration["ApiSettings:BaseUrl"]!;
     }
-
-    private string UrlBase =>
-        $"{_httpContextAccessor.HttpContext!.Request.Scheme}://{_httpContextAccessor.HttpContext!.Request.Host}";
 
     private async Task<ApiRespuesta<T>> EnviarAsync<T>(HttpMethod method, string ruta, object? cuerpo = null)
     {
-        var request = new HttpRequestMessage(method, $"{UrlBase}{ruta}");
-        request.Headers.Add("X-API-Key", _apiKey);
+        try
+        {
+            var request = new HttpRequestMessage(method, $"{_urlBase}{ruta}");
+            request.Headers.Add("X-API-Key", _apiKey);
 
-        if (cuerpo != null)
-            request.Content = JsonContent.Create(cuerpo);
+            if (cuerpo != null)
+                request.Content = JsonContent.Create(cuerpo);
 
-        var response = await _httpClient.SendAsync(request);
-        var content = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<ApiRespuesta<T>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var response = await _httpClient.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
 
-        if (result == null)
-            throw new Exception("Error al procesar la respuesta de la API.");
+            var result = JsonSerializer.Deserialize<ApiRespuesta<T>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-        if (!result.Exitoso)
-            throw new Exception(result.Mensaje ?? "Error en la solicitud a la API.");
+            if (result == null)
+            {
+                return new ApiRespuesta<T> { Exitoso = false, Mensaje = "Error al procesar la respuesta de la API." };
+            }
 
-        return result;
+            return result;
+        }
+        catch (Exception ex)
+        {
+            return new ApiRespuesta<T>
+            {
+                Exitoso = false,
+                Mensaje = $"Error de comunicación con el servidor: {ex.Message}"
+            };
+        }
     }
 
-    private async Task<T> EnviarYObtenerDatosAsync<T>(HttpMethod method, string ruta, object? cuerpo = null)
+    private async Task<T?> EnviarYObtenerDatosAsync<T>(HttpMethod method, string ruta, object? cuerpo = null)
     {
         var response = await EnviarAsync<T>(method, ruta, cuerpo);
-        return response.Datos!;
+
+        if (response == null || !response.Exitoso)
+            return default;
+
+        return response.Datos;
     }
 
     private async Task EnviarYVerificarAsync(HttpMethod method, string ruta, object? cuerpo = null)
     {
-        await EnviarAsync<object>(method, ruta, cuerpo);
+        var response = await EnviarAsync<object>(method, ruta, cuerpo);
+
+        if (!response.Exitoso)
+            throw new Exception(response.Mensaje);
     }
 
     public async Task<List<Chofer>> ObtenerChoferesAsync(string? filtro = null)
@@ -59,7 +74,7 @@ public class ServicioClienteApi
         return await EnviarYObtenerDatosAsync<List<Chofer>>(HttpMethod.Get, $"/api/choferes{query}") ?? [];
     }
 
-    public async Task<Chofer> ObtenerChoferPorIdAsync(int id) =>
+    public async Task<Chofer?> ObtenerChoferPorIdAsync(int id) =>
         await EnviarYObtenerDatosAsync<Chofer>(HttpMethod.Get, $"/api/choferes/{id}");
 
     public async Task AgregarChoferAsync(string identificacion, string nombre, string apellidos, string correo) =>
@@ -77,10 +92,10 @@ public class ServicioClienteApi
         return await EnviarYObtenerDatosAsync<List<Pasajero>>(HttpMethod.Get, $"/api/pasajeros{query}") ?? [];
     }
 
-    public async Task<Pasajero> ObtenerPasajeroPorIdAsync(int id) =>
+    public async Task<Pasajero?> ObtenerPasajeroPorIdAsync(int id) =>
         await EnviarYObtenerDatosAsync<Pasajero>(HttpMethod.Get, $"/api/pasajeros/{id}");
 
-    public async Task<Pasajero> ObtenerPasajeroPorUsuarioIdAsync(int usuarioId) =>
+    public async Task<Pasajero?> ObtenerPasajeroPorUsuarioIdAsync(int usuarioId) =>
         await EnviarYObtenerDatosAsync<Pasajero>(HttpMethod.Get, $"/api/pasajeros/por-usuario/{usuarioId}");
 
     public async Task AgregarPasajeroAsync(string identificacion, string nombre, string apellidos, string correo) =>
@@ -95,7 +110,7 @@ public class ServicioClienteApi
         return await EnviarYObtenerDatosAsync<List<Ruta>>(HttpMethod.Get, $"/api/rutas{query}") ?? [];
     }
 
-    public async Task<Ruta> ObtenerRutaPorIdAsync(int id) =>
+    public async Task<Ruta?> ObtenerRutaPorIdAsync(int id) =>
         await EnviarYObtenerDatosAsync<Ruta>(HttpMethod.Get, $"/api/rutas/{id}");
 
     public async Task AgregarRutaAsync(string nombre, string origen, string destino, TimeSpan duracion, decimal precioBase) =>
@@ -107,7 +122,7 @@ public class ServicioClienteApi
     public async Task<List<Unidad>> ObtenerUnidadesAsync() =>
         await EnviarYObtenerDatosAsync<List<Unidad>>(HttpMethod.Get, "/api/unidades") ?? [];
 
-    public async Task<Unidad> ObtenerUnidadPorIdAsync(int id) =>
+    public async Task<Unidad?> ObtenerUnidadPorIdAsync(int id) =>
         await EnviarYObtenerDatosAsync<Unidad>(HttpMethod.Get, $"/api/unidades/{id}");
 
     public async Task AgregarUnidadAsync(string placa, string modelo, int anio, int capacidad) =>
@@ -122,10 +137,10 @@ public class ServicioClienteApi
         return await EnviarYObtenerDatosAsync<List<Viaje>>(HttpMethod.Get, $"/api/viajes{query}") ?? [];
     }
 
-    public async Task<Viaje> ObtenerViajePorIdAsync(int id) =>
+    public async Task<Viaje?> ObtenerViajePorIdAsync(int id) =>
         await EnviarYObtenerDatosAsync<Viaje>(HttpMethod.Get, $"/api/viajes/{id}");
 
-    public async Task<Viaje> ObtenerDetalleViajeAsync(int id) =>
+    public async Task<Viaje?> ObtenerDetalleViajeAsync(int id) =>
         await EnviarYObtenerDatosAsync<Viaje>(HttpMethod.Get, $"/api/viajes/{id}/detalle");
 
     public async Task AgregarViajeAsync(int rutaId, int unidadId, int choferId, DateTime fechaSalida, DateTime fechaLlegada) =>
@@ -160,8 +175,12 @@ public class ServicioClienteApi
 
     public async Task<(int pasajeros, int disponibles, decimal total)> ObtenerTotalesViajeAsync(int viajeId)
     {
-        var response = await EnviarAsync<System.Text.Json.JsonElement>(HttpMethod.Get, $"/api/viajes/{viajeId}/totales");
-        var datos = response.Datos!;
+        var response = await EnviarAsync<JsonElement>(HttpMethod.Get, $"/api/viajes/{viajeId}/totales");
+
+        if (response == null || !response.Exitoso)
+            return (0, 0, 0);
+
+        var datos = response.Datos;
         var pasajeros = datos.GetProperty("pasajeros").GetInt32();
         var disponibles = datos.GetProperty("disponibles").GetInt32();
         var total = datos.GetProperty("total").GetDecimal();
@@ -171,14 +190,19 @@ public class ServicioClienteApi
     public async Task<List<Reserva>> ObtenerReservasPasajeroAsync(int pasajeroId) =>
         await EnviarYObtenerDatosAsync<List<Reserva>>(HttpMethod.Get, $"/api/viajes/reservas-pasajero/{pasajeroId}") ?? [];
 
-    public async Task<(int usuarioId, string nombreUsuario, string rol)> IniciarSesionAsync(string nombreUsuario, string clave)
+    public async Task<(int usuarioId, string nombreUsuario, string rol, string mensaje)> IniciarSesionAsync(string nombreUsuario, string clave)
     {
-        var response = await EnviarAsync<System.Text.Json.JsonElement>(HttpMethod.Post, "/api/autenticacion/iniciar-sesion", new { nombreUsuario, clave });
-        var datos = response.Datos!;
+        var response = await EnviarAsync<JsonElement>(HttpMethod.Post, "/api/autenticacion/iniciar-sesion", new { nombreUsuario, clave });
+
+        if (response == null || !response.Exitoso)
+            return (0, string.Empty, string.Empty, response?.Mensaje ?? "Error de comunicación con el servidor.");
+
+        var datos = response.Datos;
         return (
             datos.GetProperty("usuarioId").GetInt32(),
             datos.GetProperty("nombreUsuario").GetString()!,
-            datos.GetProperty("rol").GetString()!
+            datos.GetProperty("rol").GetString()!,
+            string.Empty
         );
     }
 

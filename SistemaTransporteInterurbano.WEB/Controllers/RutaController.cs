@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SistemaTransporteInterurbano.Models;
-using SistemaTransporteInterurbano.WEB.Models.ViewModels;
+using SistemaTransporteInterurbano.Models.ViewModels;
 using SistemaTransporteInterurbano.WEB.Services;
 
 namespace SistemaTransporteInterurbano.WEB.Controllers;
@@ -116,6 +116,14 @@ public class RutaController : Controller
     {
         var redireccion = VerificarAcceso();
         if (redireccion != null) return redireccion;
+
+        ViewBag.Destinos = new List<string>
+    {
+        "San José", "Alajuela", "Cartago", "Heredia", "Puntarenas",
+        "Liberia", "Limón", "Pérez Zeledón", "Turrialba", "Grecia",
+        "San Ramón", "Quesada", "Nicoya", "Santa Cruz", "Cañas",
+        "Ciudad Neily", "Golfito", "Guápiles", "Siquirres", "Parrita"
+    };
 
         try
         {

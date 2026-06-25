@@ -1,9 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SistemaTransporteInterurbano.WEB.Models.ViewModels;
+namespace SistemaTransporteInterurbano.Models.ViewModels;
 
-public class AgregarRutaViewModel
+public class EditarRutaViewModel
 {
+    public int RutaId { get; set; }
+
     [Required(ErrorMessage = "El nombre es requerido.")]
     [Display(Name = "Nombre")]
     public string Nombre { get; set; } = string.Empty;

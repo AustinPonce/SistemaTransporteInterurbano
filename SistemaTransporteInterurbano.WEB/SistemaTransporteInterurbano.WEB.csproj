@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SistemaTransporteInterurbano.API\SistemaTransporteInterurbano.API.csproj" />
     <ProjectReference Include="..\SistemaTransporteInterurbano.BL\SistemaTransporteInterurbano.BL.csproj" />
     <ProjectReference Include="..\SistemaTransporteInterurbano.Models\SistemaTransporteInterurbano.Models.csproj" />
   </ItemGroup>

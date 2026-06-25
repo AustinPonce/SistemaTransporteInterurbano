@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
+using SistemaTransporteInterurbano.API.Helpers;
+using SistemaTransporteInterurbano.API.Models;
 using SistemaTransporteInterurbano.BL.Interfaces;
 using SistemaTransporteInterurbano.Models.Entities;
-using SistemaTransporteInterurbano.WEB.Helpers;
-using SistemaTransporteInterurbano.WEB.Models;
+using SistemaTransporteInterurbano.Models.ViewModels;
 
-namespace SistemaTransporteInterurbano.WEB.Controllers.Api;
+namespace SistemaTransporteInterurbano.API.Controllers;
 
 [ApiController]
 [Route("api/rutas")]
@@ -49,7 +50,7 @@ public class RutasApiController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Agregar([FromBody] Models.ViewModels.AgregarRutaViewModel vm)
+    public async Task<IActionResult> Agregar([FromBody] AgregarRutaViewModel vm)
     {
         try
         {
@@ -66,7 +67,7 @@ public class RutasApiController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Editar(int id, [FromBody] Models.ViewModels.EditarRutaViewModel vm)
+    public async Task<IActionResult> Editar(int id, [FromBody] EditarRutaViewModel vm)
     {
         try
         {

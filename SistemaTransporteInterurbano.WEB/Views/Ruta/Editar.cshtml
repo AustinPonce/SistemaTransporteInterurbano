@@ -1,4 +1,4 @@
-﻿@model SistemaTransporteInterurbano.WEB.Models.ViewModels.EditarRutaViewModel
+﻿@model SistemaTransporteInterurbano.Models.ViewModels.EditarRutaViewModel
 
 @{
     ViewData["Title"] = "Editar Ruta";
@@ -65,7 +65,7 @@
                             <label asp-for="Origen" class="form-label small fw-semibold text-white-50 ms-1 mb-1"></label>
                             <div class="input-group glass-input-group">
                                 <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-                                <select asp-for="Origen" class="form-select glass-input-group-select" asp-items="@(new SelectList(ViewBag.Destinos, ViewBag.Destinos))">
+                                <select asp-for="Origen" class="form-select glass-input-group-select" asp-items="@(new SelectList(ViewBag.Destinos))">
                                     <option value="">Seleccione una ciudad de origen</option>
                                 </select>
                             </div>
@@ -76,7 +76,7 @@
                             <label asp-for="Destino" class="form-label small fw-semibold text-white-50 ms-1 mb-1"></label>
                             <div class="input-group glass-input-group">
                                 <span class="input-group-text"><i class="bi bi-geo-fill"></i></span>
-                                <select asp-for="Destino" class="form-select glass-input-group-select" asp-items="@(new SelectList(ViewBag.Destinos, ViewBag.Destinos))">
+                                <select asp-for="Destino" class="form-select glass-input-group-select" asp-items="@(new SelectList(ViewBag.Destinos))">
                                     <option value="">Seleccione una ciudad de destino</option>
                                 </select>
                             </div>

@@ -1,0 +1,6 @@
+@SistemaTransporteInterurbano.API_HostAddress = http://localhost:5227
+
+GET {{SistemaTransporteInterurbano.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using SistemaTransporteInterurbano.WEB.Models;
+using SistemaTransporteInterurbano.API.Models;
 
-namespace SistemaTransporteInterurbano.WEB.Helpers;
+namespace SistemaTransporteInterurbano.API.Helpers;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 public class ClaveApiAttribute : Attribute, IAuthorizationFilter

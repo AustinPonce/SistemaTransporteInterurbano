@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SistemaTransporteInterurbano.Models;
 using SistemaTransporteInterurbano.Models.Entities;
+using SistemaTransporteInterurbano.Models.ViewModels;
 using SistemaTransporteInterurbano.WEB.Models.ViewModels;
 using SistemaTransporteInterurbano.WEB.Services;
 

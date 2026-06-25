@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SistemaTransporteInterurbano.API.Helpers;
+using SistemaTransporteInterurbano.API.Models;
 using SistemaTransporteInterurbano.BL.Interfaces;
-using SistemaTransporteInterurbano.WEB.Helpers;
-using SistemaTransporteInterurbano.WEB.Models;
 
-namespace SistemaTransporteInterurbano.WEB.Controllers.Api;
+namespace SistemaTransporteInterurbano.API.Controllers;
 
 [ApiController]
 [Route("api/autenticacion")]
@@ -15,6 +15,13 @@ public class AutenticacionApiController : ControllerBase
     public AutenticacionApiController(IAutenticacionService autenticacionService)
     {
         _autenticacionService = autenticacionService;
+    }
+
+    [HttpGet("generar-hash-temporal")]
+    public IActionResult GenerarHashTemporal(string clave)
+    {
+        var hash = BCrypt.Net.BCrypt.HashPassword(clave);
+        return Ok(hash);
     }
 
     [HttpPost("iniciar-sesion")]

@@ -28,9 +28,39 @@ public class AutenticacionController : Controller
             if (!ModelState.IsValid)
                 return View(viewModel);
 
-            var (usuarioId, nombreUsuario, rol) = await _api.IniciarSesionAsync(
+            // 1. Intentar realizar el inicio de sesión en la API
+            var (usuarioId, nombreUsuario, rol, mensaje) = await _api.IniciarSesionAsync(
                 viewModel.NombreUsuario, viewModel.Clave);
 
+            // 2. Si la API devolvió el mensaje específico de "debe cambiar clave", redirigir
+            if (mensaje == "Debe cambiar la contraseña antes de continuar.")
+            {
+                TempData["MensajeExito"] = "Debe cambiar la contraseña para continuar.";
+                return RedirectToAction("CambiarClave");
+            }
+
+            // 3. FILTRO ESTRICTO: Si la API devuelve ID 0, las credenciales no existen o están mal
+            if (usuarioId == 0)
+            {
+                ViewBag.MensajeError = string.IsNullOrWhiteSpace(mensaje)
+                    ? "Usuario o contraseña incorrectos."
+                    : mensaje;
+                return View(viewModel);
+            }
+
+            // 4. FILTRO DE NEGOCIO: Si es Pasajero, verificar que tenga un perfil vinculado
+            if (rol == Roles.Pasajero)
+            {
+                var perfilPasajero = await _api.ObtenerPasajeroPorUsuarioIdAsync(usuarioId);
+
+                if (perfilPasajero == null)
+                {
+                    ViewBag.MensajeError = "El usuario existe, pero no tiene un perfil de pasajero vinculado en la base de datos.";
+                    return View(viewModel);
+                }
+            }
+
+            // 5. Si pasa con éxito los filtros anteriores, se inicializa la sesión web
             HttpContext.Session.SetString("NombreUsuario", nombreUsuario);
             HttpContext.Session.SetString("Rol", rol);
             HttpContext.Session.SetInt32("UsuarioId", usuarioId);
@@ -47,12 +77,6 @@ public class AutenticacionController : Controller
         }
         catch (Exception ex)
         {
-            if (ex.Message == "Debe cambiar la contraseña antes de continuar.")
-            {
-                TempData["MensajeExito"] = "Debe cambiar la contraseña para continuar.";
-                return RedirectToAction("CambiarClave");
-            }
-
             ViewBag.MensajeError = ex.Message;
             return View(viewModel);
         }

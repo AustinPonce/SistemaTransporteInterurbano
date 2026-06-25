@@ -1,4 +1,4 @@
-namespace SistemaTransporteInterurbano.WEB.Models;
+namespace SistemaTransporteInterurbano.API.Models;
 
 public class ApiRespuesta<T>
 {
