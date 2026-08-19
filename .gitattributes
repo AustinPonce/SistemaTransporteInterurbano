@@ -61,3 +61,10 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+
+# Ignorar plantillas HTML para la detección de lenguaje
+*.html linguist-detectable=false
+*.cshtml linguist-language=C#
+
+# Opcional: ignorar archivos de vistas en carpetas específicas
+SistemaTransporteInterurbano.WEB/** linguist-detectable=false
